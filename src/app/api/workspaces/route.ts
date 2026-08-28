@@ -6,6 +6,7 @@ const CreateWorkspaceSchema = z.object({
   destination: z.string().trim().min(2).max(120),
   nights: z.number().int().min(1).max(30),
   organizerName: z.string().trim().min(1).max(60),
+  travelerLimit: z.number().int().min(2).max(12),
 });
 
 export async function POST(request: Request) {

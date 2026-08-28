@@ -1,18 +1,18 @@
+import { inventoryProviderStatus } from "@/server/services/inventory-provider";
+
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const liveInventoryConfigured = Boolean(
-    process.env.TRAILTRIX_INVENTORY_URL && process.env.TRAILTRIX_API_KEY
-  );
+  const inventory = inventoryProviderStatus();
 
   return Response.json(
     {
       status: "ok",
       service: "commonground-travel",
       version: process.env.COMMONGROUND_RELEASE ?? "1.0.0",
-      inventoryMode: liveInventoryConfigured ? "trailtrix" : "seed",
+      inventory: { provider: inventory.id, providerName: inventory.name, mode: inventory.live ? "live" : "demo", configured: inventory.configured },
       webmcp: {
-        toolCount: 14,
+        toolCount: 15,
         humanApprovalRequired: true,
         autonomousPurchase: false,
         originTrialConfigured: Boolean(process.env.WEBMCP_ORIGIN_TRIAL_TOKEN),

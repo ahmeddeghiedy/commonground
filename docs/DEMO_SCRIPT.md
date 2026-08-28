@@ -1,8 +1,8 @@
 # Demo Script (< 3 minutes)
 
-**Setup**: Chrome with `chrome://flags/#enable-webmcp-testing` enabled (or ChatGPT in-app browser), app open, side panel agent attached. Badge reads **"WebMCP · 14 tools"**.
+**Setup**: Chrome with `chrome://flags/#enable-webmcp-testing` enabled (or ChatGPT desktop Site Tools), app open, side panel agent attached. Badge reads **"WebMCP · 15 tools"**.
 
-1. **(20s) Hook.** "Four travelers, one Lisbon trip, and an AI that can actually *see and touch* the same board they do — that's WebMCP." Point at People & Priorities: Maya's locked step-free access, Diego's budget cap, and Sana's family-room requirement.
+1. **(20s) Hook.** "A group of travelers, one Lisbon trip, and an AI that can actually *see and touch* the same board they do — that's WebMCP." Point at People & Priorities: Maya's locked step-free access, Diego's budget cap, and Sana's family-room requirement.
 
 2. **(30s) Read.** Ask the agent: *"What's the state of our trip workspace?"* → `get_workspace_state`, then *"Where do we disagree?"* → `explain_conflicts`. The agent identifies the budget gaps and explains which must-haves cannot be weakened.
 

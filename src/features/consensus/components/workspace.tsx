@@ -16,12 +16,15 @@ import { ScenarioBoard } from "./scenario-board";
 import { AgentRail } from "./agent-rail";
 import { BookingDrawer } from "./booking-drawer";
 import { useCommonGroundWebMCP } from "@/features/webmcp/use-common-ground-webmcp";
-import { Bot, Check, Compass, Link2, Plus, RotateCcw, ShieldCheck, SlidersHorizontal, Sparkles, UserPlus, Users } from "lucide-react";
+import { Bot, Check, Compass, Link2, Plus, RotateCcw, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, UserPlus, Users } from "lucide-react";
 import { DemoGuide } from "./demo-guide";
 import { CreateWorkspaceDialog } from "@/features/collaboration/create-workspace-dialog";
 import { InviteTravelerDialog } from "@/features/collaboration/invite-traveler-dialog";
 import { PriorityWizard } from "@/features/collaboration/priority-wizard";
-import { MAX_TRAVELERS, type CollaborativeWorkspace, type WorkspaceRole } from "@/features/collaboration/types";
+import type { CollaborativeWorkspace, WorkspaceRole } from "@/features/collaboration/types";
+import { WorkspaceSettingsDialog } from "@/features/collaboration/workspace-settings-dialog";
+import { WebMCPReadinessDialog } from "@/features/webmcp/webmcp-readiness-dialog";
+import { InventorySourceDialog, type InventorySourceInfo } from "@/features/inventory/inventory-source-dialog";
 
 type InventoryStatus = "loading" | "ready" | "fallback" | "error";
 type CollaborationStatus = "demo" | "loading" | "ready" | "missing" | "error";
@@ -61,6 +64,9 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
   const [showDemoGuide, setShowDemoGuide] = useState(false);
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [showInviteTraveler, setShowInviteTraveler] = useState(false);
+  const [showWorkspaceSettings, setShowWorkspaceSettings] = useState(false);
+  const [showWebMCPReadiness, setShowWebMCPReadiness] = useState(false);
+  const [showInventorySource, setShowInventorySource] = useState(false);
   const [editingTravelerId, setEditingTravelerId] = useState<string | null>(null);
   const [workspaceName, setWorkspaceName] = useState("Demo workspace");
   const [accessToken, setAccessToken] = useState("");
@@ -68,6 +74,9 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
   const [currentTravelerId, setCurrentTravelerId] = useState<string | null>(null);
   const [collaborationStatus, setCollaborationStatus] = useState<CollaborationStatus>(workspaceId ? "loading" : "demo");
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [travelerLimit, setTravelerLimit] = useState(4);
+  const [inventoryRefresh, setInventoryRefresh] = useState(0);
+  const [inventoryInfo, setInventoryInfo] = useState<InventorySourceInfo>({ id: "demo", name: "Curated challenge catalog", mode: "demo" });
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef("");
   const suppressSaveRef = useRef(true);
@@ -84,6 +93,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     setWorkspaceName(payload.name);
     workspaceVersionRef.current = payload.version;
     setRole(payload.role);
+    setTravelerLimit(payload.travelerLimit);
     setCurrentTravelerId(payload.currentTravelerId ?? (payload.role === "owner" ? payload.state.travelers[0]?.id ?? null : null));
     setState((current) => ({
       ...payload.state,
@@ -175,17 +185,19 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
       workspaceName,
       role,
       currentTravelerId,
-      maxTravelers: MAX_TRAVELERS,
+      maxTravelers: travelerLimit,
     },
     canEditTraveler,
     openCreateWorkspace: () => setShowCreateWorkspace(true),
     openInviteTraveler: () => setShowInviteTraveler(true),
+    openWorkspaceSettings: () => setShowWorkspaceSettings(true),
   });
 
   // Inventory load
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/inventory")
+    const query = new URLSearchParams({ destination: state.destination, nights: String(state.nights), travelers: String(state.travelers.length) });
+    fetch(`/api/inventory?${query}`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((data: unknown) => {
         if (cancelled) return;
@@ -195,13 +207,16 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
           const next = { ...s, hotels: hotels as Hotel[] };
           return { ...next, scenarios: generateScenarios(next.hotels, next.travelers) };
         });
-        const source =
-          !Array.isArray(data) &&
-          data &&
-          typeof data === "object" &&
-          (data as { source?: unknown }).source === "trailtrix"
-            ? "ready"
-            : "fallback";
+        const envelope = !Array.isArray(data) && data && typeof data === "object" ? data as { source?: unknown; provider?: { id?: unknown; name?: unknown; mode?: unknown }; fetchedAt?: unknown; fallbackReason?: unknown } : {};
+        const mode = envelope.provider?.mode === "live" ? "live" : envelope.provider?.mode === "fallback" ? "fallback" : "demo";
+        const source: InventoryStatus = mode === "live" ? "ready" : "fallback";
+        setInventoryInfo({
+          id: envelope.source === "wadjet" ? "wadjet" : envelope.source === "custom" ? "custom" : "demo",
+          name: typeof envelope.provider?.name === "string" ? envelope.provider.name : "Curated challenge catalog",
+          mode,
+          fetchedAt: typeof envelope.fetchedAt === "string" ? envelope.fetchedAt : undefined,
+          fallbackReason: typeof envelope.fallbackReason === "string" ? envelope.fallbackReason : undefined,
+        });
         setStatus(source);
         notify(
           source === "ready"
@@ -215,7 +230,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
         if (!cancelled) notify("Inventory unavailable — using demo data");
       });
     return () => { cancelled = true; };
-  }, [notify]);
+  }, [inventoryRefresh, notify, state.destination, state.nights, state.travelers.length]);
 
   const recalc = useCallback((travelers: WorkspaceState["travelers"], hotels: Hotel[]) => ({
     scenarios: generateScenarios(hotels, travelers),
@@ -225,7 +240,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
   useEffect(() => {
     if (!workspaceId || !accessToken || collaborationStatus !== "ready") return;
     const payload = role === "owner"
-      ? { version: workspaceVersionRef.current, state: { destination: state.destination, nights: state.nights, travelers: state.travelers, activity: state.activity } }
+      ? { version: workspaceVersionRef.current, state: { destination: state.destination, nights: state.nights, travelerLimit, travelers: state.travelers, activity: state.activity } }
       : { traveler: state.travelers.find((traveler) => traveler.id === currentTravelerId) };
     if ("traveler" in payload && !payload.traveler) return;
     const serialized = JSON.stringify(payload);
@@ -258,7 +273,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
       }
     }, 700);
     return () => clearTimeout(timer);
-  }, [accessToken, collaborationStatus, currentTravelerId, notify, refreshWorkspace, role, state.activity, state.destination, state.nights, state.travelers, workspaceId]);
+  }, [accessToken, collaborationStatus, currentTravelerId, notify, refreshWorkspace, role, state.activity, state.destination, state.nights, state.travelers, travelerLimit, workspaceId]);
 
   const handlePriorityChange = useCallback((travelerId: string, constraintId: string, priority: Priority) => {
     if (!canEditTraveler(travelerId)) { notify("You can edit only your own priorities"); return; }
@@ -398,11 +413,11 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
           <span className="cg-labs">TrailTrix Labs</span>
           <div className="cg-header-meta">
             <span>📍 {state.destination} · {state.nights} nights</span>
-            <span className={`cg-badge ${badge.cls}`}><span className={`cg-dot ${badge.dot}`} />{badge.text}</span>
-            <span className="cg-badge" aria-label="WebMCP status">
-              <span className={`cg-dot ${webmcp.supported ? "cg-dot--ok" : "cg-dot--off"}`} />
-              {webmcp.supported ? `WebMCP · ${webmcp.registeredCount} tools` : "WebMCP off"}
-            </span>
+            <button type="button" className={`cg-badge cg-badge-button ${badge.cls}`} onClick={() => setShowInventorySource(true)}><span className={`cg-dot ${badge.dot}`} />{badge.text}</button>
+            <button type="button" className="cg-badge cg-badge-button" aria-label="WebMCP connection status" onClick={() => setShowWebMCPReadiness(true)}>
+              <span className={`cg-dot ${webmcp.supported ? "cg-dot--ok" : "cg-dot--idle"}`} />
+              {webmcp.supported ? `WebMCP · ${webmcp.registeredCount} tools` : "WebMCP ready · connect browser"}
+            </button>
           </div>
         </div>
       </header>
@@ -418,7 +433,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
         <section className="cg-hero" aria-labelledby="product-title">
           <div className="cg-hero-copy">
             <div className="cg-eyebrow"><Sparkles size={14} /> WebMCP-native group travel</div>
-            <h1 id="product-title">{workspaceId ? `${state.travelers.length} travelers. One fair decision.` : "Four travelers. One decision everyone can live with."}</h1>
+            <h1 id="product-title">{workspaceId ? `${state.travelers.length} of ${travelerLimit} travelers. One fair decision.` : "Different travelers. One decision everyone can live with."}</h1>
             <p>
               CommonGround turns competing budgets, accessibility needs and family preferences into
               a fair, auditable hotel decision—on the same live board humans and AI agents can use.
@@ -439,11 +454,11 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
             <div className="cg-command-head">
               <div><Bot size={18} /><span>Agent control surface</span></div>
               <span className={`cg-status-pill ${webmcp.supported ? "is-ready" : "is-off"}`}>
-                {webmcp.supported ? "Native & ready" : "Enable WebMCP"}
+                {webmcp.supported ? "Native & connected" : "15 tools ready"}
               </span>
             </div>
             <div className="cg-command-metrics">
-              <div><strong>{webmcp.supported ? webmcp.registeredCount : 14}</strong><span>strict tools</span></div>
+              <div><strong>{webmcp.supported ? webmcp.registeredCount : 15}</strong><span>strict tools</span></div>
               <div><strong>100%</strong><span>visible writes</span></div>
               <div><strong>0</strong><span>autonomous purchases</span></div>
             </div>
@@ -458,11 +473,12 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
         </section>
 
         <section className="cg-collaboration-bar" aria-label="Workspace collaboration status">
-          <div className="cg-collab-identity"><span className="cg-collab-icon"><Users size={19} /></span><div><strong>{workspaceName}</strong><span>{workspaceId ? `${state.travelers.length} of ${MAX_TRAVELERS} travelers` : "Explore with four sample travelers"}</span></div></div>
+          <div className="cg-collab-identity"><span className="cg-collab-icon"><Users size={19} /></span><div><strong>{workspaceName}</strong><span>{workspaceId ? `${state.travelers.length} of ${travelerLimit} traveler seats` : `${state.travelers.length} sample decision profiles`}</span></div></div>
           <div className="cg-collab-explainer"><strong>{workspaceId ? "Every traveler owns their priorities." : "Ready to use this with your own group?"}</strong><span>{workspaceId ? "Musts are protected first; preferences shape the fairest remaining shortlist." : "Create a private workspace, invite 2–12 people, and watch the consensus update live."}</span></div>
           <div className="cg-collab-actions">
             {workspaceId && <span className={`cg-sync-status is-${syncStatus}`}>{syncStatus === "saving" ? "Saving…" : syncStatus === "error" ? "Save failed" : "Saved"}</span>}
-            {workspaceId && role === "owner" && <button type="button" className="cg-btn" disabled={state.travelers.length >= MAX_TRAVELERS} onClick={() => setShowInviteTraveler(true)}><UserPlus size={15} /> Invite traveler</button>}
+            {workspaceId && role === "owner" && <button type="button" className="cg-btn" onClick={() => setShowWorkspaceSettings(true)}><Settings2 size={15} /> Group size</button>}
+            {workspaceId && role === "owner" && <button type="button" className="cg-btn" disabled={state.travelers.length >= travelerLimit} onClick={() => setShowInviteTraveler(true)}><UserPlus size={15} /> Invite traveler</button>}
             {workspaceId && currentTravelerId && <button type="button" className="cg-btn cg-btn--primary" onClick={() => setEditingTravelerId(currentTravelerId)}><SlidersHorizontal size={15} /> My priorities</button>}
             {!workspaceId && <button type="button" className="cg-btn cg-btn--primary" onClick={() => setShowCreateWorkspace(true)}><Plus size={15} /> Start a workspace</button>}
           </div>
@@ -541,10 +557,16 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
           workspaceId={workspaceId}
           accessToken={accessToken}
           currentCount={state.travelers.length}
+          travelerLimit={travelerLimit}
           onClose={() => setShowInviteTraveler(false)}
           onInvited={() => refreshWorkspace()}
         />
       )}
+      {showWorkspaceSettings && workspaceId && role === "owner" && (
+        <WorkspaceSettingsDialog travelerLimit={travelerLimit} currentCount={state.travelers.length} onClose={() => setShowWorkspaceSettings(false)} onSave={setTravelerLimit} />
+      )}
+      {showWebMCPReadiness && <WebMCPReadinessDialog supported={webmcp.supported} toolCount={webmcp.registeredCount || 15} onClose={() => setShowWebMCPReadiness(false)} />}
+      {showInventorySource && <InventorySourceDialog info={inventoryInfo} onClose={() => setShowInventorySource(false)} onRefresh={() => { setStatus("loading"); setInventoryRefresh((value) => value + 1); }} />}
       {editingTravelerId && state.travelers.find((traveler) => traveler.id === editingTravelerId) && (
         <PriorityWizard
           traveler={state.travelers.find((traveler) => traveler.id === editingTravelerId)!}

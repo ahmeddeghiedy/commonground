@@ -2,7 +2,7 @@
 
 ## Capacity and roles
 
-CommonGround is designed for groups of **2–12 travelers**. A workspace begins with the organizer, so it can temporarily contain one person while setup is in progress. The twelfth seat is the hard technical limit; this keeps the comparison board readable and the pairwise conflict analysis responsive.
+CommonGround is designed for groups of **2–12 travelers**. The organizer selects the planned capacity while creating the workspace and can change it later from **Group size**. A workspace begins with the organizer, so it can temporarily contain one person while setup is in progress. The limit cannot be reduced below the current member count.
 
 - **Organizer**: creates the workspace, invites travelers, edits trip-level state, can edit every profile when helping the group, and controls shared scenario/veto/booking-draft actions.
 - **Traveler**: opens a personal private link and can edit only their own budget, priorities, and locks. Other profiles are view-only.
@@ -11,10 +11,10 @@ CommonGround is designed for groups of **2–12 travelers**. A workspace begins 
 ## Create and invite flow
 
 1. From the demo homepage, choose **Create your trip**.
-2. Enter the trip name, destination, number of nights, and organizer name.
+2. Enter the trip name, destination, nights, organizer name, and planned group size.
 3. CommonGround creates a durable D1 workspace and stores the organizer credential in that browser.
-4. Choose **Invite traveler**, add a name and optional email label, then copy the generated private link.
-5. Send that link manually. CommonGround deliberately does not send email or expose a contact list.
+4. Choose **Invite traveler**, add a name and optional email, then create the private seat.
+5. Share through the email client, WhatsApp, the device share sheet, or copy the link/message. No address book is uploaded and CommonGround does not send silently in the background.
 6. The traveler opens the link and is immediately guided through their own priority profile.
 
 Each link contains a high-entropy token. Only its SHA-256 hash is stored in D1. The token is removed from the address bar after it is saved to the browser. Losing the organizer browser credential currently requires creating another workspace; account-based recovery is a future enhancement.
@@ -43,4 +43,4 @@ Any profile change recalculates conflicts and all three lists immediately. Priva
 
 ## Current boundary
 
-The application creates booking drafts only. It does not reserve inventory, charge a card, send email, or autonomously purchase travel. Live inventory can be enabled through the TrailTrix-compatible server adapter; otherwise the UI labels deterministic demo inventory honestly.
+The application creates booking drafts only. It does not reserve inventory, charge a card, or autonomously purchase travel. Live inventory can be enabled through the Wadjet/provider-neutral server adapter; otherwise the UI labels deterministic demo inventory honestly.

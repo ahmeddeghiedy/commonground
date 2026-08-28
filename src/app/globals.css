@@ -64,6 +64,8 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 }
 .cg-badge--live { color: var(--accent); border-color: rgba(110, 231, 200, 0.4); }
 .cg-badge--demo { color: var(--warn); border-color: rgba(242, 179, 86, 0.4); }
+.cg-badge-button { width: auto; flex: 0 0 auto; background: transparent; color: var(--muted); cursor: pointer; }
+.cg-badge-button:hover { color: var(--text); background: rgba(255,255,255,.05); }
 .cg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 .cg-dot--ok { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 .cg-dot--off { background: var(--danger); }
@@ -188,6 +190,18 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 .cg-success-icon { margin: 8px auto 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #07101b; background: var(--accent); }
 .cg-share-link { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 10px; }
 .cg-share-link .cg-btn { display: flex; align-items: center; gap: 6px; }
+.cg-share-methods { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 8px 0; }
+.cg-share-methods .cg-btn { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+.cg-share-warning { color: var(--warn) !important; font-size: 11px !important; }
+.cg-capacity-field { display: grid !important; grid-template-columns: 1fr auto; gap: 7px 12px !important; padding: 13px; border: 1px solid rgba(110,231,200,.22); border-radius: 12px; background: rgba(110,231,200,.045); }
+.cg-capacity-field > span { display: flex; align-items: center; gap: 7px; color: var(--text) !important; font-weight: 650 !important; }
+.cg-capacity-field > strong { color: var(--accent); }
+.cg-capacity-field > input { grid-column: 1/-1; padding: 0; border: 0; box-shadow: none; accent-color: var(--accent); }
+.cg-capacity-field > small { grid-column: 1/-1; color: var(--muted); font-weight: 400; }
+.cg-capacity-field--large { margin: 18px 0; padding: 18px; }
+.cg-provider-flow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin: 16px 0; padding: 12px; border-radius: 11px; background: rgba(139,156,247,.07); color: #dce1ff; font-size: 11px; }
+.cg-provider-flow i { color: var(--accent); font-style: normal; }
+.cg-connection-steps { margin-bottom: 14px; }
 .cg-priority-legend { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 18px; }
 .cg-priority-legend > div { padding: 9px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.025); }
 .cg-priority-legend small { display: block; color: var(--muted); font-size: 10px; margin-top: 6px; }
@@ -215,7 +229,7 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 .cg-access-actions .cg-btn { flex: 0 0 auto; text-decoration: none; }
 
 @media (max-width: 980px) { .cg-collaboration-bar { grid-template-columns: 1fr auto; } .cg-collab-explainer { grid-column: 1/-1; grid-row: 2; } }
-@media (max-width: 620px) { .cg-collaboration-bar { grid-template-columns: 1fr; } .cg-collab-explainer, .cg-collab-actions { grid-column: auto; grid-row: auto; } .cg-collab-actions { justify-content: stretch; } .cg-collab-actions .cg-btn { flex: 1; } .cg-form-row, .cg-priority-options, .cg-priority-legend { grid-template-columns: 1fr; } .cg-collab-dialog, .cg-priority-dialog { padding: 22px 17px; } .cg-share-link { grid-template-columns: 1fr; } .cg-access-actions { flex-direction: column; } .cg-access-actions .cg-btn { width: 100%; } }
+@media (max-width: 620px) { .cg-collaboration-bar { grid-template-columns: 1fr; } .cg-collab-explainer, .cg-collab-actions { grid-column: auto; grid-row: auto; } .cg-collab-actions { justify-content: stretch; } .cg-collab-actions .cg-btn { flex: 1; } .cg-form-row, .cg-priority-options, .cg-priority-legend, .cg-share-methods { grid-template-columns: 1fr; } .cg-collab-dialog, .cg-priority-dialog { padding: 22px 17px; } .cg-share-link { grid-template-columns: 1fr; } .cg-access-actions { flex-direction: column; } .cg-access-actions .cg-btn { width: 100%; } }
 
 /* Tabs */
 .cg-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }

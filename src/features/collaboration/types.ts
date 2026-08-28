@@ -12,11 +12,13 @@ export interface CollaborativeWorkspace {
   state: WorkspaceState;
   role: WorkspaceRole;
   currentTravelerId: string | null;
+  travelerLimit: number;
 }
 
 export interface PersistedWorkspaceState {
   travelers: Traveler[];
   activity: Activity[];
+  travelerLimit?: number;
 }
 
 export interface WorkspaceInvite {

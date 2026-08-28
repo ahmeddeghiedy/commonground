@@ -5,7 +5,8 @@ export interface InventoryQuery {
 }
 
 export interface InventoryResponse {
-  source: "trailtrix" | "seed";
+  source: "demo" | "wadjet" | "custom";
+  provider: { id: string; name: string; mode: "live" | "demo" | "fallback"; configured: boolean; live: boolean };
   hotels: unknown[];
   fetchedAt: string;
 }

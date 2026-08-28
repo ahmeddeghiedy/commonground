@@ -39,6 +39,7 @@ export interface CommonGroundWebMCPProps {
   canEditTraveler: (travelerId: string) => boolean;
   openCreateWorkspace: () => void;
   openInviteTraveler: () => void;
+  openWorkspaceSettings: () => void;
 }
 
 export interface CommonGroundWebMCPStatus {
@@ -269,6 +270,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
             }));
           return ok({
             count: hotels.length,
+            provider: !Array.isArray(data) && data && typeof data === "object" ? (data as { provider?: unknown }).provider ?? null : null,
             hotels,
             nextAction: "Call compare_scenarios to see how these rank for this specific group.",
           });
@@ -349,6 +351,19 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         if (P.current.state.travelers.length >= c.maxTravelers) return fail(`This workspace already has the maximum ${c.maxTravelers} travelers.`);
         P.current.openInviteTraveler();
         return ok({ inviteCreated: false, changed: { inviteDialogOpened: true }, nextAction: "Ask the organizer to complete the visible form and copy the generated private link." });
+      },
+    });
+
+    register("open_workspace_settings", {
+      description: "Open the visible organizer-only workspace settings where the human can adjust the planned traveler capacity between 2 and 12. This tool never changes the limit itself.",
+      inputSchema: schema({}, []),
+      annotations: { readOnlyHint: false },
+      execute: async () => {
+        const c = P.current.collaboration;
+        if (c.mode !== "workspace") return fail("No private workspace is open", "Use open_workspace_setup first.");
+        if (c.role !== "owner") return fail("Only the organizer can change workspace capacity.");
+        P.current.openWorkspaceSettings();
+        return ok({ changed: { workspaceSettingsOpened: true }, nextAction: "Ask the organizer to review the visible capacity control and choose Done." });
       },
     });
 

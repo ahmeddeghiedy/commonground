@@ -9,7 +9,7 @@ Humans (UI) ──► Workspace state (React) ──► ScenarioBoard / AgentRai
                         │   ▼
               use-common-ground-webmcp ── registerTool ──► document.modelContext
                         │                                     │
-                        └── search_hotel_inventory ──► /api/inventory (fetch, AbortSignal)
+                        └── search_hotel_inventory ──► /api/inventory ──► provider adapter
                         │
                         └── debounced role-scoped sync ──► workspace API ──► D1
 ```
@@ -35,8 +35,8 @@ Read tools declare `readOnlyHint: true`; write tools declare `readOnlyHint: fals
 
 ## Fallback behavior
 
-- No `document.modelContext` → hook is a strict no-op; status `{supported: false, registeredCount: 0}` drives the header badge ("WebMCP off"). No errors thrown.
+- No `document.modelContext` → hook is a strict no-op; status `{supported: false, registeredCount: 0}` drives a readiness badge and browser-permission diagnostic. No errors are thrown and the app remains fully usable.
 - Individual `registerTool` failures are swallowed; `registeredCount` reflects actual successes.
-- Inventory API down → `search_hotel_inventory` returns `{success:false, hint}` pointing the agent to normalized seeded hotels from `get_workspace_state`.
+- Inventory API down or not configured → the provider adapter returns normalized deterministic demo inventory and identifies the response as fallback data.
 - Unmount → all tool handles removed and in-flight fetches aborted.
 - Older Chrome testing builds that omit callback execution options receive a safe local `AbortSignal`; current builds pass through the browser-provided cancellation signal.

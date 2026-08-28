@@ -33,8 +33,8 @@ export function DemoGuide({
         <div className={`cg-readiness ${webmcpReady ? "is-ready" : "is-warning"}`}>
           {webmcpReady ? <CheckCircle2 size={18} /> : <ShieldCheck size={18} />}
           <div>
-            <strong>{webmcpReady ? `${toolCount} WebMCP tools registered` : "WebMCP is not exposed in this browser"}</strong>
-            <span>{webmcpReady ? "The live agent can read and act on this board." : "Use the WebMCP origin trial or enable Chrome's WebMCP testing flag, then reload."}</span>
+            <strong>{webmcpReady ? `${toolCount} WebMCP tools registered` : "15 tools ready; browser connection unavailable"}</strong>
+            <span>{webmcpReady ? "The live agent can read and act on this board." : "In the ChatGPT desktop built-in browser, enable Site Tools under Browser settings → Permissions, use an eligible account/model, then reload."}</span>
           </div>
         </div>
 

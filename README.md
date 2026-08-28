@@ -8,6 +8,8 @@ CommonGround is a multi-traveler hotel decision workspace where an AI agent and 
 
 **Workspace, invite, and scoring model:** [`docs/COLLABORATION.md`](docs/COLLABORATION.md)
 
+**Wadjet, custom inventory, and demo data:** [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)
+
 ## Setup
 
 ```bash
@@ -15,12 +17,13 @@ corepack pnpm install
 corepack pnpm dev      # http://localhost:3000
 ```
 
-Optional live inventory: configure the server adapter described in `.env.example`; `GET /api/inventory` returns `{ hotels: Hotel[] }` using the model in `src/features/consensus/types.ts`. Without credentials the app falls back to seeded demo data and shows a "Demo inventory" badge.
+Optional live inventory: choose `wadjet` or `custom` through the provider adapter documented in `.env.example` and `docs/INTEGRATIONS.md`. Without a configured endpoint, or whenever it fails safely, the app uses the curated demo catalog and labels the source honestly.
 
 ## Feature overview
 
 - **People & priorities**: each traveler's constraints with priority (must/prefer/flexible/exclude), weights, and locks.
-- **Private collaboration**: durable trip workspaces for 2–12 travelers, organizer-managed personal invite links, traveler-scoped editing, and automatic shared refresh.
+- **Private collaboration**: durable trip workspaces with organizer-selected capacity from 2–12, link/email/WhatsApp/native sharing, traveler-scoped editing, and automatic shared refresh.
+- **Pluggable inventory**: Wadjet and generic REST/JSON adapters normalize live data without changing the fairness engine or WebMCP contract.
 - **Scenario board**: consensus / value / compromise rankings with fairness scores and per-traveler scores.
 - **Agent rail**: conflicts with suggested resolutions, activity log, prompt box.
 - **Booking drawer**: human-in-the-loop draft; approving records intent only — **no purchase ever occurs**.
@@ -39,6 +42,7 @@ Optional live inventory: configure the server adapter described in `.env.example
 | `explain_conflicts` | read | Conflicts with severity, resolutions, locked constraints. |
 | `open_workspace_setup` | write | Opens the human-controlled trip creation form; never submits it. |
 | `open_invite_traveler` | write | Opens the organizer-only invite form; never shares a link automatically. |
+| `open_workspace_settings` | write | Opens organizer-only traveler-capacity settings. |
 | `set_constraint_priority` | write | Change a constraint's priority; recalculates; logs activity. |
 | `lock_constraint` | write | Lock/unlock a constraint so its priority cannot change silently. |
 | `veto_hotel` | write | Remove/restore a hotel across scenarios. |
@@ -48,9 +52,9 @@ Optional live inventory: configure the server adapter described in `.env.example
 
 ## Testing with an agent
 
-**ChatGPT in-app browser**: open the deployed app inside ChatGPT's browser; tools are offered to the model automatically when WebMCP is enabled.
+**ChatGPT desktop built-in browser**: enable **Site Tools** under Browser settings → Permissions, open the deployed app with an eligible account/model, and approve the website-access prompt. The address-bar arrow shows availability.
 
-**Chrome flag**: `chrome://flags/#enable-webmcp-testing` → Enabled → relaunch. The header badge shows `WebMCP · N tools` when registered, `WebMCP off` otherwise. Verify in DevTools: `document.modelContext`.
+**Chrome testing**: `chrome://flags/#enable-webmcp-testing` → Enabled → relaunch. The header shows `WebMCP · N tools` when connected. If it says `WebMCP ready · connect browser`, click it for the diagnostic; the website is ready but that browser session has not exposed `document.modelContext`.
 
 For a deterministic browser smoke test, start the production server in one terminal, then run:
 
@@ -61,7 +65,7 @@ corepack pnpm start
 corepack pnpm verify:webmcp
 ```
 
-The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 14 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
+The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 15 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
 
 For a public URL, enroll the deployed origin in Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`. The app emits it as an origin-trial meta tag. Local development does not need a token when the testing flag is enabled.
 
@@ -69,8 +73,9 @@ Production diagnostics are available at [`/api/health`](https://commonground-tra
 
 ## Demo vs live environment
 
-- `DEMO` (default): seeded hotels; badge shows "Demo inventory"; all tools still work against seed data.
-- `LIVE`: any `/api/inventory` conforming to the `Hotel[]` shape; `search_hotel_inventory` proxies it with `AbortSignal` cancellation.
+- `demo` (default): deterministic catalog; badge shows "Demo inventory"; all tools use the same normalized contract.
+- `wadjet`: Wadjet's private inventory endpoint and server credential.
+- `custom`: another REST/JSON provider with configurable method, authentication header, response path, and flexible field normalization.
 
 ## Safety
 

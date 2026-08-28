@@ -46,13 +46,22 @@ async function hashToken(token: string) {
   return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
-function persistedState(state: WorkspaceState): PersistedWorkspaceState {
-  return { travelers: state.travelers, activity: state.activity };
+function parsePersistedState(row: WorkspaceRow): PersistedWorkspaceState {
+  return JSON.parse(row.state_json) as PersistedWorkspaceState;
+}
+
+function travelerLimit(row: WorkspaceRow) {
+  const limit = parsePersistedState(row).travelerLimit;
+  return typeof limit === "number" && limit >= 2 && limit <= MAX_TRAVELERS ? limit : MAX_TRAVELERS;
+}
+
+function persistedState(state: WorkspaceState, limit = MAX_TRAVELERS): PersistedWorkspaceState {
+  return { travelers: state.travelers, activity: state.activity, travelerLimit: limit };
 }
 
 function hydrateState(row: WorkspaceRow): WorkspaceState {
   const base = buildWorkspaceState();
-  const stored = JSON.parse(row.state_json) as PersistedWorkspaceState;
+  const stored = parsePersistedState(row);
   const travelers = Array.isArray(stored.travelers) ? stored.travelers : [];
   return {
     ...base,
@@ -91,6 +100,7 @@ export async function createWorkspace(input: {
   destination: string;
   nights: number;
   organizerName: string;
+  travelerLimit: number;
 }): Promise<{ workspace: CollaborativeWorkspace; ownerToken: string }> {
   await ensureSchema();
   const db = database();
@@ -116,17 +126,17 @@ export async function createWorkspace(input: {
   };
   await db.prepare(
     "INSERT INTO workspaces (id, name, destination, nights, state_json, owner_token_hash, version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)"
-  ).bind(id, input.name, input.destination, input.nights, JSON.stringify(persistedState(state)), await hashToken(ownerToken), now, now).run();
+  ).bind(id, input.name, input.destination, input.nights, JSON.stringify(persistedState(state, input.travelerLimit)), await hashToken(ownerToken), now, now).run();
   return {
     ownerToken,
-    workspace: { id, name: input.name, version: 1, state, role: "owner", currentTravelerId: traveler.id },
+    workspace: { id, name: input.name, version: 1, state, role: "owner", currentTravelerId: traveler.id, travelerLimit: input.travelerLimit },
   };
 }
 
 export async function readWorkspace(id: string, token: string): Promise<CollaborativeWorkspace> {
   const row = await workspaceRow(id);
   const access = await authorize(row, token);
-  return { id: row.id, name: row.name, version: row.version, state: hydrateState(row), role: access.role, currentTravelerId: access.travelerId };
+  return { id: row.id, name: row.name, version: row.version, state: hydrateState(row), role: access.role, currentTravelerId: access.travelerId, travelerLimit: travelerLimit(row) };
 }
 
 export async function saveWorkspace(id: string, token: string, input: {
@@ -134,16 +144,18 @@ export async function saveWorkspace(id: string, token: string, input: {
   nights: number;
   travelers: Traveler[];
   activity: Activity[];
+  travelerLimit: number;
 }, expectedVersion: number) {
   const row = await workspaceRow(id);
   const access = await authorize(row, token);
   if (access.role !== "owner") throw new Error("OWNER_REQUIRED");
   if (input.travelers.length < 1 || input.travelers.length > MAX_TRAVELERS) throw new Error("TRAVELER_LIMIT");
+  if (input.travelerLimit < input.travelers.length) throw new Error("LIMIT_BELOW_MEMBERS");
   const now = new Date().toISOString();
   const nextVersion = row.version + 1;
   const result = await database().prepare(
     "UPDATE workspaces SET destination = ?, nights = ?, state_json = ?, version = ?, updated_at = ? WHERE id = ? AND version = ?"
-  ).bind(input.destination, input.nights, JSON.stringify({ travelers: input.travelers, activity: input.activity.slice(0, 30) }), nextVersion, now, id, expectedVersion).run();
+  ).bind(input.destination, input.nights, JSON.stringify({ travelers: input.travelers, activity: input.activity.slice(0, 30), travelerLimit: input.travelerLimit }), nextVersion, now, id, expectedVersion).run();
   if (!result.meta.changes) throw new Error("VERSION_CONFLICT");
   return { success: true, version: nextVersion };
 }
@@ -159,7 +171,7 @@ export async function saveOwnTraveler(id: string, token: string, traveler: Trave
   const now = new Date().toISOString();
   await database().batch([
     database().prepare("UPDATE workspaces SET state_json = ?, version = version + 1, updated_at = ? WHERE id = ?")
-      .bind(JSON.stringify({ travelers, activity: state.activity.slice(0, 30) }), now, id),
+      .bind(JSON.stringify({ travelers, activity: state.activity.slice(0, 30), travelerLimit: travelerLimit(row) }), now, id),
     database().prepare("UPDATE workspace_members SET status = 'active', name = ?, updated_at = ? WHERE workspace_id = ? AND traveler_id = ?")
       .bind(traveler.name, now, id, traveler.id),
   ]);
@@ -171,7 +183,8 @@ export async function createInvite(id: string, token: string, input: { name: str
   const access = await authorize(row, token);
   if (access.role !== "owner") throw new Error("OWNER_REQUIRED");
   const state = hydrateState(row);
-  if (state.travelers.length >= MAX_TRAVELERS) throw new Error("TRAVELER_LIMIT");
+  const limit = travelerLimit(row);
+  if (state.travelers.length >= limit) throw new Error("TRAVELER_LIMIT");
   const inviteToken = createToken();
   const traveler: Traveler = {
     id: `t-${crypto.randomUUID()}`,
@@ -191,7 +204,7 @@ export async function createInvite(id: string, token: string, input: { name: str
       "INSERT INTO workspace_members (id, workspace_id, traveler_id, name, email, token_hash, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'traveler', 'invited', ?, ?)"
     ).bind(crypto.randomUUID(), id, traveler.id, traveler.name, input.email ?? null, await hashToken(inviteToken), now, now),
     database().prepare("UPDATE workspaces SET state_json = ?, version = version + 1, updated_at = ? WHERE id = ?")
-      .bind(JSON.stringify({ travelers, activity }), now, id),
+      .bind(JSON.stringify({ travelers, activity, travelerLimit: limit }), now, id),
   ]);
   return { travelerId: traveler.id, travelerName: traveler.name, inviteToken };
 }

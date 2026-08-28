@@ -7,7 +7,7 @@ export const metadata = {
     "A WebMCP-native group travel workspace where humans and AI agents reach fair, auditable hotel decisions together.",
   openGraph: {
     title: "CommonGround Travel",
-    description: "Four travelers. One decision everyone can live with.",
+    description: "Different travelers. One fair decision everyone can live with.",
     url: "https://commonground-travel.a-deghiedy.chatgpt.site",
     siteName: "CommonGround Travel",
     images: [{ url: "/og.png", width: 1732, height: 909, alt: "CommonGround Travel — Decide together. Travel better." }],

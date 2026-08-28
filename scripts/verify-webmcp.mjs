@@ -18,6 +18,7 @@ const EXPECTED_TOOLS = [
   "explain_conflicts",
   "open_workspace_setup",
   "open_invite_traveler",
+  "open_workspace_settings",
   "set_constraint_priority",
   "lock_constraint",
   "veto_hotel",

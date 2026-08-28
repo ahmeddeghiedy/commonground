@@ -17,6 +17,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ wor
   } catch (error) {
     const code = error instanceof Error ? error.message : "UNKNOWN";
     const status = code === "TRAVELER_LIMIT" ? 409 : /INVALID_ACCESS|OWNER_REQUIRED/.test(code) ? 403 : 500;
-    return Response.json({ error: code === "TRAVELER_LIMIT" ? "This workspace already has 12 travelers." : "We couldn't create the invite." }, { status });
+    return Response.json({ error: code === "TRAVELER_LIMIT" ? "This workspace has reached its organizer-set traveler limit." : "We couldn't create the invite." }, { status });
   }
 }

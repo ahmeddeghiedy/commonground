@@ -10,12 +10,12 @@
 
 ## Deployment
 
-- [ ] Deploy to a dedicated HTTPS development URL.
+- [x] Deploy to a dedicated public HTTPS development URL.
 - [ ] Configure TrailTrix inventory credentials, or intentionally keep deterministic demo inventory.
 - [ ] Enroll the final origin in Chrome's WebMCP origin trial.
 - [ ] Set `WEBMCP_ORIGIN_TRIAL_TOKEN` and redeploy.
 - [ ] Verify the `Origin-Trial` response header on the public URL.
-- [ ] Add the live URL to `docs/SUBMISSION.md`.
+- [x] Add the live URL to `docs/SUBMISSION.md`.
 
 ## Verification
 

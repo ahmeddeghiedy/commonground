@@ -8,9 +8,11 @@ export interface TravelerCardProps {
   traveler: Traveler;
   onPriorityChange: (travelerId: string, constraintId: string, priority: Priority) => void;
   onToggleLock: (travelerId: string, constraintId: string) => void;
+  editable?: boolean;
+  onOpenPriorities?: () => void;
 }
 
-export function TravelerCard({ traveler, onPriorityChange, onToggleLock }: TravelerCardProps) {
+export function TravelerCard({ traveler, onPriorityChange, onToggleLock, editable = true, onOpenPriorities }: TravelerCardProps) {
   const initials = traveler.name.split(" ").map((p) => p[0]).slice(0, 2).join("");
   return (
     <article className="cg-traveler" aria-label={`${traveler.name}, budget ${traveler.budgetPerNight} euro per night`}>
@@ -26,7 +28,14 @@ export function TravelerCard({ traveler, onPriorityChange, onToggleLock }: Trave
           <div className="cg-traveler-name">{traveler.name}</div>
           <div className="cg-traveler-budget">€{traveler.budgetPerNight}/night budget</div>
         </div>
+        {!editable && <span className="cg-view-only">View only</span>}
       </div>
+      {traveler.constraints.length === 0 && (
+        <div className="cg-empty-priorities">
+          <span>{editable ? "Ready to add your decision rules." : `Waiting for ${traveler.name} to add priorities.`}</span>
+          {editable && onOpenPriorities && <button type="button" className="cg-btn cg-btn--quiet" onClick={onOpenPriorities}>Set priorities</button>}
+        </div>
+      )}
       <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0" }}>
         {traveler.constraints.map((c) => (
           <li key={c.id} className="cg-constraint">
@@ -36,7 +45,7 @@ export function TravelerCard({ traveler, onPriorityChange, onToggleLock }: Trave
               type="button"
               className={`cg-priority cg-priority--${c.priority}`}
               aria-label={`${traveler.name}: change priority for ${c.label}, currently ${c.priority}`}
-              disabled={c.locked}
+              disabled={!editable || c.locked}
               onClick={() => {
                 const next = PRIORITIES[(PRIORITIES.indexOf(c.priority) + 1) % PRIORITIES.length];
                 onPriorityChange(traveler.id, c.id, next);
@@ -50,6 +59,7 @@ export function TravelerCard({ traveler, onPriorityChange, onToggleLock }: Trave
               className="cg-lock-btn"
               aria-pressed={c.locked}
               aria-label={`${c.locked ? "Unlock" : "Lock"} constraint ${c.label} for ${traveler.name}`}
+              disabled={!editable}
               onClick={() => onToggleLock(traveler.id, c.id)}
             >
               {c.locked ? "Unlock" : "Lock"}
@@ -57,6 +67,7 @@ export function TravelerCard({ traveler, onPriorityChange, onToggleLock }: Trave
           </li>
         ))}
       </ul>
+      {traveler.constraints.length > 0 && editable && onOpenPriorities && <button type="button" className="cg-edit-profile" onClick={onOpenPriorities}>Edit full profile</button>}
     </article>
   );
 }

@@ -15,10 +15,16 @@ import { ScenarioBoard } from "./scenario-board";
 import { AgentRail } from "./agent-rail";
 import { BookingDrawer } from "./booking-drawer";
 import { useCommonGroundWebMCP } from "@/features/webmcp/use-common-ground-webmcp";
-import { Bot, Check, Compass, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { Bot, Check, Compass, Link2, Plus, RotateCcw, ShieldCheck, SlidersHorizontal, Sparkles, UserPlus, Users } from "lucide-react";
 import { DemoGuide } from "./demo-guide";
+import { CreateWorkspaceDialog } from "@/features/collaboration/create-workspace-dialog";
+import { InviteTravelerDialog } from "@/features/collaboration/invite-traveler-dialog";
+import { PriorityWizard } from "@/features/collaboration/priority-wizard";
+import { MAX_TRAVELERS, type CollaborativeWorkspace, type WorkspaceRole } from "@/features/collaboration/types";
 
 type InventoryStatus = "loading" | "ready" | "fallback" | "error";
+type CollaborationStatus = "demo" | "loading" | "ready" | "missing" | "error";
+type SyncStatus = "idle" | "saving" | "saved" | "error";
 
 function isHotel(v: unknown): v is Hotel {
   if (!v || typeof v !== "object") return false;
@@ -43,7 +49,7 @@ function logActivity(prev: Activity[], actorId: string, kind: Activity["kind"], 
   return [entry, ...prev].slice(0, 30);
 }
 
-export function Workspace() {
+export function Workspace({ workspaceId }: { workspaceId?: string }) {
   const [state, setState] = useState<WorkspaceState>(() => buildWorkspaceState());
   const [selectedScenarioId, setSelectedScenarioId] = useState<Scenario["id"]>("consensus");
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
@@ -52,13 +58,71 @@ export function Workspace() {
   const [toast, setToast] = useState<string | null>(null);
   const [status, setStatus] = useState<InventoryStatus>("loading");
   const [showDemoGuide, setShowDemoGuide] = useState(false);
+  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+  const [showInviteTraveler, setShowInviteTraveler] = useState(false);
+  const [editingTravelerId, setEditingTravelerId] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState("Demo workspace");
+  const [accessToken, setAccessToken] = useState("");
+  const [role, setRole] = useState<WorkspaceRole | null>(null);
+  const [currentTravelerId, setCurrentTravelerId] = useState<string | null>(null);
+  const [collaborationStatus, setCollaborationStatus] = useState<CollaborationStatus>(workspaceId ? "loading" : "demo");
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef("");
+  const suppressSaveRef = useRef(true);
+  const promptedForPrioritiesRef = useRef(false);
 
   const notify = useCallback((msg: string) => {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 3500);
   }, []);
+
+  const applyCollaborativeWorkspace = useCallback((payload: CollaborativeWorkspace, token: string) => {
+    setWorkspaceName(payload.name);
+    setRole(payload.role);
+    setCurrentTravelerId(payload.currentTravelerId ?? (payload.role === "owner" ? payload.state.travelers[0]?.id ?? null : null));
+    setState((current) => ({
+      ...payload.state,
+      hotels: current.hotels,
+      scenarios: generateScenarios(current.hotels, payload.state.travelers),
+      conflicts: detectConflicts(payload.state.travelers),
+    }));
+    setAccessToken(token);
+    setCollaborationStatus("ready");
+    suppressSaveRef.current = true;
+  }, []);
+
+  const refreshWorkspace = useCallback(async (token = accessToken) => {
+    if (!workspaceId || !token) return;
+    const response = await fetch(`/api/workspaces/${workspaceId}`, { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+    if (!response.ok) throw new Error("Unable to open this workspace");
+    applyCollaborativeWorkspace(await response.json() as CollaborativeWorkspace, token);
+  }, [accessToken, applyCollaborativeWorkspace, workspaceId]);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    const query = new URLSearchParams(window.location.search);
+    const sharedToken = query.get("invite");
+    const key = `commonground:access:${workspaceId}`;
+    let token = sharedToken ?? "";
+    if (!token) { try { token = localStorage.getItem(key) ?? ""; } catch { /* access screen below */ } }
+    if (sharedToken) {
+      try { localStorage.setItem(key, sharedToken); } catch { /* token remains in memory */ }
+      window.history.replaceState({}, "", `/w/${workspaceId}`);
+    }
+    if (!token) { setCollaborationStatus("missing"); return; }
+    refreshWorkspace(token).catch(() => setCollaborationStatus("error"));
+  }, [refreshWorkspace, workspaceId]);
+
+  useEffect(() => {
+    if (collaborationStatus !== "ready" || role !== "traveler" || !currentTravelerId || promptedForPrioritiesRef.current) return;
+    const ownProfile = state.travelers.find((traveler) => traveler.id === currentTravelerId);
+    if (ownProfile?.constraints.length === 0) {
+      promptedForPrioritiesRef.current = true;
+      setEditingTravelerId(currentTravelerId);
+    }
+  }, [collaborationStatus, currentTravelerId, role, state.travelers]);
 
   const openBookingDraft = useCallback((hotelId?: string) => {
     const resolvedHotelId = hotelId ?? selectedHotelId;
@@ -130,7 +194,45 @@ export function Workspace() {
     conflicts: detectConflicts(travelers),
   }), []);
 
+  const canEditTraveler = useCallback((travelerId: string) => (
+    collaborationStatus === "demo" || role === "owner" || (role === "traveler" && travelerId === currentTravelerId)
+  ), [collaborationStatus, currentTravelerId, role]);
+
+  useEffect(() => {
+    if (!workspaceId || !accessToken || collaborationStatus !== "ready") return;
+    const payload = role === "owner"
+      ? { state: { destination: state.destination, nights: state.nights, travelers: state.travelers, activity: state.activity } }
+      : { traveler: state.travelers.find((traveler) => traveler.id === currentTravelerId) };
+    if ("traveler" in payload && !payload.traveler) return;
+    const serialized = JSON.stringify(payload);
+    if (suppressSaveRef.current) {
+      suppressSaveRef.current = false;
+      lastSavedRef.current = serialized;
+      setSyncStatus("saved");
+      return;
+    }
+    if (serialized === lastSavedRef.current) return;
+    setSyncStatus("saving");
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/workspaces/${workspaceId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+          body: serialized,
+        });
+        if (!response.ok) throw new Error("Save failed");
+        lastSavedRef.current = serialized;
+        setSyncStatus("saved");
+      } catch {
+        setSyncStatus("error");
+        notify("Changes could not be saved — please try again");
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [accessToken, collaborationStatus, currentTravelerId, notify, role, state.activity, state.destination, state.nights, state.travelers, workspaceId]);
+
   const handlePriorityChange = useCallback((travelerId: string, constraintId: string, priority: Priority) => {
+    if (!canEditTraveler(travelerId)) { notify("You can edit only your own priorities"); return; }
     setState((s) => {
       const travelers = s.travelers.map((t) =>
         t.id === travelerId
@@ -147,9 +249,10 @@ export function Workspace() {
       };
     });
     notify(`Priority updated — scenarios recalculated`);
-  }, [notify, recalc]);
+  }, [canEditTraveler, notify, recalc]);
 
   const handleToggleLock = useCallback((travelerId: string, constraintId: string) => {
+    if (!canEditTraveler(travelerId)) { notify("You can edit only your own priorities"); return; }
     setState((s) => {
       const travelers = s.travelers.map((t) =>
         t.id === travelerId
@@ -165,7 +268,22 @@ export function Workspace() {
       };
     });
     notify("Lock status updated");
-  }, [notify, recalc]);
+  }, [canEditTraveler, notify, recalc]);
+
+  const savePriorityProfile = useCallback((updated: WorkspaceState["travelers"][number]) => {
+    if (!canEditTraveler(updated.id)) return;
+    setState((current) => {
+      const travelers = current.travelers.map((traveler) => traveler.id === updated.id ? updated : traveler);
+      return {
+        ...current,
+        travelers,
+        ...recalc(travelers, current.hotels),
+        activity: logActivity(current.activity, updated.id, "constraint-update", `${updated.name} saved ${updated.constraints.length} decision rules`),
+      };
+    });
+    setEditingTravelerId(null);
+    notify("Priorities saved — the shortlist has been recalculated");
+  }, [canEditTraveler, notify, recalc]);
 
   const handleVeto = useCallback((hotelId: string) => {
     setVetoedHotelIds((prev) =>
@@ -229,6 +347,20 @@ export function Workspace() {
     status === "error" ? { cls: "cg-badge--demo", dot: "cg-dot--off", text: "Demo inventory (error)" } :
     { cls: "cg-badge--demo", dot: "cg-dot--idle", text: "Demo inventory" };
 
+  if (workspaceId && collaborationStatus !== "ready") {
+    const loading = collaborationStatus === "loading";
+    return <div className="cg-app cg-access-page">
+      <section className="cg-access-card">
+        <span className="cg-logo" aria-hidden="true" />
+        <div className="cg-eyebrow"><Link2 size={14} /> Private group workspace</div>
+        <h1>{loading ? "Opening your trip…" : "This trip needs its private access link."}</h1>
+        <p>{loading ? "Loading the travelers and their latest priorities." : collaborationStatus === "error" ? "This link is invalid, expired, or the workspace is unavailable. Ask the organizer to send your personal invite link again." : "Open the full link your organizer shared. Each traveler receives a different link so priorities stay safely scoped."}</p>
+        {!loading && <div className="cg-access-actions"><a className="cg-btn cg-btn--primary" href="/">Try the live demo</a><button type="button" className="cg-btn" onClick={() => setShowCreateWorkspace(true)}>Create a new trip</button></div>}
+      </section>
+      {showCreateWorkspace && <CreateWorkspaceDialog onClose={() => setShowCreateWorkspace(false)} />}
+    </div>;
+  }
+
   return (
     <div className="cg-app">
       <header className="cg-header">
@@ -257,18 +389,21 @@ export function Workspace() {
         <section className="cg-hero" aria-labelledby="product-title">
           <div className="cg-hero-copy">
             <div className="cg-eyebrow"><Sparkles size={14} /> WebMCP-native group travel</div>
-            <h1 id="product-title">Four travelers. One decision everyone can live with.</h1>
+            <h1 id="product-title">{workspaceId ? `${state.travelers.length} travelers. One fair decision.` : "Four travelers. One decision everyone can live with."}</h1>
             <p>
               CommonGround turns competing budgets, accessibility needs and family preferences into
               a fair, auditable hotel decision—on the same live board humans and AI agents can use.
             </p>
             <div className="cg-hero-actions">
-              <button type="button" className="cg-btn cg-btn--primary cg-btn--hero" onClick={() => setShowDemoGuide(true)}>
+              {!workspaceId && <button type="button" className="cg-btn cg-btn--primary cg-btn--hero" onClick={() => setShowCreateWorkspace(true)}>
+                <Plus size={16} /> Create your trip
+              </button>}
+              <button type="button" className={`cg-btn ${workspaceId ? "cg-btn--primary" : "cg-btn--quiet"} cg-btn--hero`} onClick={() => setShowDemoGuide(true)}>
                 <Compass size={16} /> Run the 3-minute demo
               </button>
-              <button type="button" className="cg-btn cg-btn--quiet cg-btn--hero" onClick={resetDemo}>
+              {!workspaceId && <button type="button" className="cg-btn cg-btn--quiet cg-btn--hero" onClick={resetDemo}>
                 <RotateCcw size={15} /> Reset workspace
-              </button>
+              </button>}
             </div>
           </div>
           <div className="cg-command-card" aria-label="WebMCP control surface status">
@@ -279,7 +414,7 @@ export function Workspace() {
               </span>
             </div>
             <div className="cg-command-metrics">
-              <div><strong>{webmcp.supported ? webmcp.registeredCount : 11}</strong><span>strict tools</span></div>
+              <div><strong>{webmcp.supported ? webmcp.registeredCount : 14}</strong><span>strict tools</span></div>
               <div><strong>100%</strong><span>visible writes</span></div>
               <div><strong>0</strong><span>autonomous purchases</span></div>
             </div>
@@ -293,6 +428,17 @@ export function Workspace() {
           </div>
         </section>
 
+        <section className="cg-collaboration-bar" aria-label="Workspace collaboration status">
+          <div className="cg-collab-identity"><span className="cg-collab-icon"><Users size={19} /></span><div><strong>{workspaceName}</strong><span>{workspaceId ? `${state.travelers.length} of ${MAX_TRAVELERS} travelers` : "Explore with four sample travelers"}</span></div></div>
+          <div className="cg-collab-explainer"><strong>{workspaceId ? "Every traveler owns their priorities." : "Ready to use this with your own group?"}</strong><span>{workspaceId ? "Musts are protected first; preferences shape the fairest remaining shortlist." : "Create a private workspace, invite 2–12 people, and watch the consensus update live."}</span></div>
+          <div className="cg-collab-actions">
+            {workspaceId && <span className={`cg-sync-status is-${syncStatus}`}>{syncStatus === "saving" ? "Saving…" : syncStatus === "error" ? "Save failed" : "Saved"}</span>}
+            {workspaceId && role === "owner" && <button type="button" className="cg-btn" disabled={state.travelers.length >= MAX_TRAVELERS} onClick={() => setShowInviteTraveler(true)}><UserPlus size={15} /> Invite traveler</button>}
+            {workspaceId && currentTravelerId && <button type="button" className="cg-btn cg-btn--primary" onClick={() => setEditingTravelerId(currentTravelerId)}><SlidersHorizontal size={15} /> My priorities</button>}
+            {!workspaceId && <button type="button" className="cg-btn cg-btn--primary" onClick={() => setShowCreateWorkspace(true)}><Plus size={15} /> Start a workspace</button>}
+          </div>
+        </section>
+
         <div className="cg-grid">
           <div className="cg-col-people">
             <section className="cg-panel" aria-label="People and priorities">
@@ -303,6 +449,8 @@ export function Workspace() {
                   traveler={t}
                   onPriorityChange={handlePriorityChange}
                   onToggleLock={handleToggleLock}
+                  editable={canEditTraveler(t.id)}
+                  onOpenPriorities={canEditTraveler(t.id) ? () => setEditingTravelerId(t.id) : undefined}
                 />
               ))}
             </section>
@@ -355,6 +503,24 @@ export function Workspace() {
           toolCount={webmcp.registeredCount}
           onClose={() => setShowDemoGuide(false)}
           onCopyPrompt={handlePrompt}
+        />
+      )}
+
+      {showCreateWorkspace && <CreateWorkspaceDialog onClose={() => setShowCreateWorkspace(false)} />}
+      {showInviteTraveler && workspaceId && accessToken && (
+        <InviteTravelerDialog
+          workspaceId={workspaceId}
+          accessToken={accessToken}
+          currentCount={state.travelers.length}
+          onClose={() => setShowInviteTraveler(false)}
+          onInvited={() => refreshWorkspace()}
+        />
+      )}
+      {editingTravelerId && state.travelers.find((traveler) => traveler.id === editingTravelerId) && (
+        <PriorityWizard
+          traveler={state.travelers.find((traveler) => traveler.id === editingTravelerId)!}
+          onClose={() => setEditingTravelerId(null)}
+          onSave={savePriorityProfile}
         />
       )}
 

@@ -132,7 +132,7 @@ async function evaluate(client, expression, timeout = 60_000) {
 let activeChrome;
 let activeProfile;
 
-async function cleanup() {
+async function cleanupBestEffort() {
   if (activeChrome) {
     if (process.platform === "win32" && activeChrome.pid) {
       const killer = spawn("taskkill.exe", ["/pid", String(activeChrome.pid), "/t", "/f"], {
@@ -174,6 +174,12 @@ async function cleanup() {
   }
   activeChrome = undefined;
   activeProfile = undefined;
+}
+
+async function cleanup() {
+  // Chrome can retain a Windows profile lock after its debugging socket closes.
+  // Cleanup must never keep an otherwise successful CI verification alive.
+  await Promise.race([cleanupBestEffort(), sleep(15_000)]);
 }
 
 async function main() {

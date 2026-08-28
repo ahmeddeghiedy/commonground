@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import type {
   Activity,
   BookingDraft,
@@ -71,6 +72,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
   const lastSavedRef = useRef("");
   const suppressSaveRef = useRef(true);
   const promptedForPrioritiesRef = useRef(false);
+  const workspaceVersionRef = useRef(1);
 
   const notify = useCallback((msg: string) => {
     setToast(msg);
@@ -80,6 +82,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
 
   const applyCollaborativeWorkspace = useCallback((payload: CollaborativeWorkspace, token: string) => {
     setWorkspaceName(payload.name);
+    workspaceVersionRef.current = payload.version;
     setRole(payload.role);
     setCurrentTravelerId(payload.currentTravelerId ?? (payload.role === "owner" ? payload.state.travelers[0]?.id ?? null : null));
     setState((current) => ({
@@ -116,6 +119,16 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
   }, [refreshWorkspace, workspaceId]);
 
   useEffect(() => {
+    if (!workspaceId || !accessToken || collaborationStatus !== "ready") return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible" && syncStatus !== "saving") {
+        refreshWorkspace().catch(() => undefined);
+      }
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [accessToken, collaborationStatus, refreshWorkspace, syncStatus, workspaceId]);
+
+  useEffect(() => {
     if (collaborationStatus !== "ready" || role !== "traveler" || !currentTravelerId || promptedForPrioritiesRef.current) return;
     const ownProfile = state.travelers.find((traveler) => traveler.id === currentTravelerId);
     if (ownProfile?.constraints.length === 0) {
@@ -123,6 +136,10 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
       setEditingTravelerId(currentTravelerId);
     }
   }, [collaborationStatus, currentTravelerId, role, state.travelers]);
+
+  const canEditTraveler = useCallback((travelerId: string) => (
+    collaborationStatus === "demo" || role === "owner" || (role === "traveler" && travelerId === currentTravelerId)
+  ), [collaborationStatus, currentTravelerId, role]);
 
   const openBookingDraft = useCallback((hotelId?: string) => {
     const resolvedHotelId = hotelId ?? selectedHotelId;
@@ -152,6 +169,17 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     vetoedHotelIds,
     setVetoedHotelIds,
     openBookingDraft,
+    collaboration: {
+      mode: workspaceId ? "workspace" : "demo",
+      workspaceId,
+      workspaceName,
+      role,
+      currentTravelerId,
+      maxTravelers: MAX_TRAVELERS,
+    },
+    canEditTraveler,
+    openCreateWorkspace: () => setShowCreateWorkspace(true),
+    openInviteTraveler: () => setShowInviteTraveler(true),
   });
 
   // Inventory load
@@ -194,14 +222,10 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     conflicts: detectConflicts(travelers),
   }), []);
 
-  const canEditTraveler = useCallback((travelerId: string) => (
-    collaborationStatus === "demo" || role === "owner" || (role === "traveler" && travelerId === currentTravelerId)
-  ), [collaborationStatus, currentTravelerId, role]);
-
   useEffect(() => {
     if (!workspaceId || !accessToken || collaborationStatus !== "ready") return;
     const payload = role === "owner"
-      ? { state: { destination: state.destination, nights: state.nights, travelers: state.travelers, activity: state.activity } }
+      ? { version: workspaceVersionRef.current, state: { destination: state.destination, nights: state.nights, travelers: state.travelers, activity: state.activity } }
       : { traveler: state.travelers.find((traveler) => traveler.id === currentTravelerId) };
     if ("traveler" in payload && !payload.traveler) return;
     const serialized = JSON.stringify(payload);
@@ -220,16 +244,21 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
           headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
           body: serialized,
         });
-        if (!response.ok) throw new Error("Save failed");
+        if (!response.ok) {
+          if (response.status === 409) await refreshWorkspace();
+          throw new Error(response.status === 409 ? "Workspace changed elsewhere" : "Save failed");
+        }
+        const result = await response.json() as { version?: number };
+        if (result.version) workspaceVersionRef.current = result.version;
         lastSavedRef.current = serialized;
         setSyncStatus("saved");
       } catch {
         setSyncStatus("error");
-        notify("Changes could not be saved — please try again");
+        notify("Changes could not be saved. The latest shared version has been loaded.");
       }
     }, 700);
     return () => clearTimeout(timer);
-  }, [accessToken, collaborationStatus, currentTravelerId, notify, role, state.activity, state.destination, state.nights, state.travelers, workspaceId]);
+  }, [accessToken, collaborationStatus, currentTravelerId, notify, refreshWorkspace, role, state.activity, state.destination, state.nights, state.travelers, workspaceId]);
 
   const handlePriorityChange = useCallback((travelerId: string, constraintId: string, priority: Priority) => {
     if (!canEditTraveler(travelerId)) { notify("You can edit only your own priorities"); return; }
@@ -355,7 +384,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
         <div className="cg-eyebrow"><Link2 size={14} /> Private group workspace</div>
         <h1>{loading ? "Opening your trip…" : "This trip needs its private access link."}</h1>
         <p>{loading ? "Loading the travelers and their latest priorities." : collaborationStatus === "error" ? "This link is invalid, expired, or the workspace is unavailable. Ask the organizer to send your personal invite link again." : "Open the full link your organizer shared. Each traveler receives a different link so priorities stay safely scoped."}</p>
-        {!loading && <div className="cg-access-actions"><a className="cg-btn cg-btn--primary" href="/">Try the live demo</a><button type="button" className="cg-btn" onClick={() => setShowCreateWorkspace(true)}>Create a new trip</button></div>}
+        {!loading && <div className="cg-access-actions"><Link className="cg-btn cg-btn--primary" href="/">Try the live demo</Link><button type="button" className="cg-btn" onClick={() => setShowCreateWorkspace(true)}>Create a new trip</button></div>}
       </section>
       {showCreateWorkspace && <CreateWorkspaceDialog onClose={() => setShowCreateWorkspace(false)} />}
     </div>;

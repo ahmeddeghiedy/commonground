@@ -12,7 +12,7 @@ export async function GET() {
       version: process.env.COMMONGROUND_RELEASE ?? "1.0.0",
       inventoryMode: liveInventoryConfigured ? "trailtrix" : "seed",
       webmcp: {
-        toolCount: 11,
+        toolCount: 14,
         humanApprovalRequired: true,
         autonomousPurchase: false,
         originTrialConfigured: Boolean(process.env.WEBMCP_ORIGIN_TRIAL_TOKEN),

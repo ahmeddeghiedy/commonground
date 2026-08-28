@@ -6,6 +6,8 @@ CommonGround is a multi-traveler hotel decision workspace where an AI agent and 
 
 **Presenter runbook:** [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 
+**Workspace, invite, and scoring model:** [`docs/COLLABORATION.md`](docs/COLLABORATION.md)
+
 ## Setup
 
 ```bash
@@ -18,6 +20,7 @@ Optional live inventory: configure the server adapter described in `.env.example
 ## Feature overview
 
 - **People & priorities**: each traveler's constraints with priority (must/prefer/flexible/exclude), weights, and locks.
+- **Private collaboration**: durable trip workspaces for 2–12 travelers, organizer-managed personal invite links, traveler-scoped editing, and automatic shared refresh.
 - **Scenario board**: consensus / value / compromise rankings with fairness scores and per-traveler scores.
 - **Agent rail**: conflicts with suggested resolutions, activity log, prompt box.
 - **Booking drawer**: human-in-the-loop draft; approving records intent only — **no purchase ever occurs**.
@@ -28,11 +31,14 @@ Optional live inventory: configure the server adapter described in `.env.example
 
 | Tool | Mode | Purpose |
 |---|---|---|
+| `get_collaboration_status` | read | Workspace mode, role, capacity, and current traveler scope. |
 | `get_workspace_state` | read | Full snapshot: travelers, constraints, scenarios, selection. |
 | `list_travelers_and_constraints` | read | Per-traveler constraints + detected conflicts. |
 | `search_hotel_inventory` | read | Calls `/api/inventory`, returns normalized hotels (supports price/score filters). |
 | `compare_scenarios` | read | Side-by-side scenario comparison with per-traveler scores. |
 | `explain_conflicts` | read | Conflicts with severity, resolutions, locked constraints. |
+| `open_workspace_setup` | write | Opens the human-controlled trip creation form; never submits it. |
+| `open_invite_traveler` | write | Opens the organizer-only invite form; never shares a link automatically. |
 | `set_constraint_priority` | write | Change a constraint's priority; recalculates; logs activity. |
 | `lock_constraint` | write | Lock/unlock a constraint so its priority cannot change silently. |
 | `veto_hotel` | write | Remove/restore a hotel across scenarios. |
@@ -55,7 +61,7 @@ corepack pnpm start
 corepack pnpm verify:webmcp
 ```
 
-The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 11 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
+The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 14 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
 
 For a public URL, enroll the deployed origin in Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`. The app emits it as an origin-trial meta tag. Local development does not need a token when the testing flag is enabled.
 
@@ -69,6 +75,7 @@ Production diagnostics are available at [`/api/health`](https://commonground-tra
 ## Safety
 
 - Every write tool mutates React state through the app's own setters — the UI is the source of truth; the agent cannot bypass it.
+- Private workspaces persist in D1. Organizer writes use optimistic version checks, invite tokens are stored only as SHA-256 hashes, and traveler links can update only their assigned profile.
 - All mutations append activity-log entries (actor `agent`).
 - No payments: `prepare_booking_draft` only opens a confirmation drawer and explicitly returns `purchaseOccurred: false`.
 - Schemas are strict (`additionalProperties: false`); arguments are validated before any state change.

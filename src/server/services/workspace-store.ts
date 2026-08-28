@@ -134,16 +134,17 @@ export async function saveWorkspace(id: string, token: string, input: {
   nights: number;
   travelers: Traveler[];
   activity: Activity[];
-}) {
+}, expectedVersion: number) {
   const row = await workspaceRow(id);
   const access = await authorize(row, token);
   if (access.role !== "owner") throw new Error("OWNER_REQUIRED");
   if (input.travelers.length < 1 || input.travelers.length > MAX_TRAVELERS) throw new Error("TRAVELER_LIMIT");
   const now = new Date().toISOString();
   const nextVersion = row.version + 1;
-  await database().prepare(
-    "UPDATE workspaces SET destination = ?, nights = ?, state_json = ?, version = ?, updated_at = ? WHERE id = ?"
-  ).bind(input.destination, input.nights, JSON.stringify({ travelers: input.travelers, activity: input.activity.slice(0, 30) }), nextVersion, now, id).run();
+  const result = await database().prepare(
+    "UPDATE workspaces SET destination = ?, nights = ?, state_json = ?, version = ?, updated_at = ? WHERE id = ? AND version = ?"
+  ).bind(input.destination, input.nights, JSON.stringify({ travelers: input.travelers, activity: input.activity.slice(0, 30) }), nextVersion, now, id, expectedVersion).run();
+  if (!result.meta.changes) throw new Error("VERSION_CONFLICT");
   return { success: true, version: nextVersion };
 }
 

@@ -9,6 +9,7 @@ import type {
   WorkspaceState,
 } from "../consensus/types";
 import { detectConflicts, generateScenarios } from "../consensus/scoring";
+import type { WorkspaceRole } from "../collaboration/types";
 import type {
   WebMCPJsonSchema,
   WebMCPModelContext,
@@ -27,6 +28,17 @@ export interface CommonGroundWebMCPProps {
   vetoedHotelIds: string[];
   setVetoedHotelIds: Setter<string[]>;
   openBookingDraft: (hotelId?: string) => void;
+  collaboration: {
+    mode: "demo" | "workspace";
+    workspaceId?: string;
+    workspaceName: string;
+    role: WorkspaceRole | null;
+    currentTravelerId: string | null;
+    maxTravelers: number;
+  };
+  canEditTraveler: (travelerId: string) => boolean;
+  openCreateWorkspace: () => void;
+  openInviteTraveler: () => void;
 }
 
 export interface CommonGroundWebMCPStatus {
@@ -143,7 +155,30 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
 
     const P = propsRef;
 
+    const ownerRequired = () => P.current.collaboration.mode === "workspace" && P.current.collaboration.role !== "owner";
+
     // ---------- READ TOOLS ----------
+
+    register("get_collaboration_status", {
+      description: "Read whether this is a sample demo or a durable private workspace, the current access role, traveler capacity, and which traveler profile the current visitor can edit. Use before collaboration or mutation actions.",
+      inputSchema: schema({}, []),
+      annotations: { readOnlyHint: true },
+      execute: async () => {
+        const c = P.current.collaboration;
+        return ok({
+          mode: c.mode,
+          workspaceId: c.workspaceId ?? null,
+          workspaceName: c.workspaceName,
+          role: c.role ?? "demo-user",
+          currentTravelerId: c.currentTravelerId,
+          travelerCount: P.current.state.travelers.length,
+          maxTravelers: c.maxTravelers,
+          canInvite: c.mode === "workspace" && c.role === "owner" && P.current.state.travelers.length < c.maxTravelers,
+          accessModel: "The organizer can manage the workspace and invites. Each invited traveler can edit only their own priority profile.",
+          nextAction: c.mode === "demo" ? "Use open_workspace_setup to let the human create a private trip." : "Use list_travelers_and_constraints to inspect decision profiles.",
+        });
+      },
+    });
 
     register("get_workspace_state", {
       description:
@@ -293,6 +328,30 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
 
     // ---------- WRITE TOOLS ----------
 
+    register("open_workspace_setup", {
+      description: "Open the visible, human-controlled form for creating a durable private trip workspace. This tool does not submit or create anything itself; the human reviews the trip name, destination, nights, and organizer name.",
+      inputSchema: schema({}, []),
+      annotations: { readOnlyHint: false },
+      execute: async () => {
+        P.current.openCreateWorkspace();
+        return ok({ workspaceCreated: false, changed: { setupDialogOpened: true }, nextAction: "Ask the human to complete and submit the visible workspace form." });
+      },
+    });
+
+    register("open_invite_traveler", {
+      description: "Open the visible organizer-only invitation form. It creates no invitation until the human enters a name and submits; CommonGround then produces a private traveler-scoped link for manual sharing.",
+      inputSchema: schema({}, []),
+      annotations: { readOnlyHint: false },
+      execute: async () => {
+        const c = P.current.collaboration;
+        if (c.mode !== "workspace") return fail("No private workspace is open", "Use open_workspace_setup first.");
+        if (c.role !== "owner") return fail("Only the organizer can invite travelers.");
+        if (P.current.state.travelers.length >= c.maxTravelers) return fail(`This workspace already has the maximum ${c.maxTravelers} travelers.`);
+        P.current.openInviteTraveler();
+        return ok({ inviteCreated: false, changed: { inviteDialogOpened: true }, nextAction: "Ask the organizer to complete the visible form and copy the generated private link." });
+      },
+    });
+
     register("set_constraint_priority", {
       description:
         "Change one traveler's constraint priority (must/prefer/flexible/exclude). State-changing: updates the visible board, recalculates scenarios, and logs activity. Ask the traveler first when ambiguous.",
@@ -309,6 +368,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         const priority = PRIORITIES.includes(a.priority as Priority) ? (a.priority as Priority) : null;
         if (!travelerId || !constraintId || !priority)
           return fail("invalid arguments", "Need travelerId, constraintId, priority in {must,prefer,flexible,exclude}.");
+        if (!P.current.canEditTraveler(travelerId)) return fail("You can edit only your own traveler profile.", "Call get_collaboration_status for the current travelerId.");
         const t = P.current.state.travelers.find((x) => x.id === travelerId);
         const c = t?.constraints.find((x) => x.id === constraintId);
         if (!t || !c) return fail("traveler or constraint not found", "Call list_travelers_and_constraints for valid IDs.");
@@ -346,6 +406,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         const constraintId = requireString(a.constraintId);
         const locked = typeof a.locked === "boolean" ? a.locked : true;
         if (!travelerId || !constraintId) return fail("invalid arguments");
+        if (!P.current.canEditTraveler(travelerId)) return fail("You can edit only your own traveler profile.", "Call get_collaboration_status for the current travelerId.");
         const t = P.current.state.travelers.find((x) => x.id === travelerId);
         const c = t?.constraints.find((x) => x.id === constraintId);
         if (!t || !c) return fail("traveler or constraint not found");
@@ -376,6 +437,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       }, ["hotelId"]),
       annotations: { readOnlyHint: false },
       execute: async (args) => {
+        if (ownerRequired()) return fail("Only the organizer can veto group options.");
         const a = (args ?? {}) as Record<string, unknown>;
         const hotelId = requireString(a.hotelId);
         if (!hotelId) return fail("invalid arguments", "hotelId is required.");
@@ -405,6 +467,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       inputSchema: schema({}, []),
       annotations: { readOnlyHint: false },
       execute: async () => {
+        if (ownerRequired()) return fail("Only the organizer can regenerate group scenarios.");
         P.current.setState((s) => ({
           ...s,
           ...recalc(s.travelers, s.hotels),
@@ -423,6 +486,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       inputSchema: schema({ scenarioId: enum_("Scenario to show.", SCENARIO_IDS) }, ["scenarioId"]),
       annotations: { readOnlyHint: false },
       execute: async (args) => {
+        if (ownerRequired()) return fail("Only the organizer can change the shared scenario view.");
         const a = (args ?? {}) as Record<string, unknown>;
         const scenarioId = SCENARIO_IDS.includes(a.scenarioId as Scenario["id"])
           ? (a.scenarioId as Scenario["id"]) : null;
@@ -448,6 +512,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       }, []),
       annotations: { readOnlyHint: false },
       execute: async (args) => {
+        if (ownerRequired()) return fail("Only the organizer can prepare a group booking draft.");
         const a = (args ?? {}) as Record<string, unknown>;
         const hotelId = requireString(a.hotelId) ?? P.current.selectedHotelId;
         if (!hotelId) return fail("no hotel selected", "Pass hotelId or have a human select a hotel first.");

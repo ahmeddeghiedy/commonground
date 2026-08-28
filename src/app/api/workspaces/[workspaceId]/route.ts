@@ -18,6 +18,7 @@ const ActivitySchema = z.object({
   detail: z.string().max(300), at: z.string(),
 });
 const OwnerUpdateSchema = z.object({
+  version: z.number().int().positive(),
   state: z.object({
     destination: z.string().trim().min(2).max(120), nights: z.number().int().min(1).max(30),
     travelers: z.array(TravelerSchema).min(1).max(12), activity: z.array(ActivitySchema).max(30),
@@ -34,6 +35,7 @@ function errorResponse(error: unknown) {
   if (code === "WORKSPACE_NOT_FOUND") return Response.json({ error: "Workspace not found." }, { status: 404 });
   if (/INVALID_ACCESS|OWNER_REQUIRED|TRAVELER_SCOPE_REQUIRED/.test(code)) return Response.json({ error: "This invite does not grant access to that action." }, { status: 403 });
   if (code === "TRAVELER_LIMIT") return Response.json({ error: "A workspace supports up to 12 travelers." }, { status: 409 });
+  if (code === "VERSION_CONFLICT") return Response.json({ error: "This workspace changed elsewhere. Refresh and try again." }, { status: 409 });
   return Response.json({ error: "Workspace service unavailable." }, { status: 500 });
 }
 
@@ -49,7 +51,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ wo
     const { workspaceId } = await params;
     const body = await request.json().catch(() => null);
     const owner = OwnerUpdateSchema.safeParse(body);
-    if (owner.success) return Response.json(await saveWorkspace(workspaceId, bearer(request), owner.data.state));
+    if (owner.success) return Response.json(await saveWorkspace(workspaceId, bearer(request), owner.data.state, owner.data.version));
     const traveler = TravelerUpdateSchema.safeParse(body);
     if (traveler.success) return Response.json(await saveOwnTraveler(workspaceId, bearer(request), traveler.data.traveler));
     return Response.json({ error: "Invalid workspace update." }, { status: 400 });

@@ -10,17 +10,21 @@ Humans (UI) ──► Workspace state (React) ──► ScenarioBoard / AgentRai
               use-common-ground-webmcp ── registerTool ──► document.modelContext
                         │                                     │
                         └── search_hotel_inventory ──► /api/inventory (fetch, AbortSignal)
+                        │
+                        └── debounced role-scoped sync ──► workspace API ──► D1
 ```
 
 - `Workspace` owns all state. The hook receives setters/callbacks and stores them in a ref updated every render, so handlers registered **once** always act on current state.
 - Writes flow only through the provided setters (`setState`, `setSelectedScenarioId`, `setVetoedHotelIds`, `openBookingDraft`), guaranteeing the visible UI and agent view cannot diverge.
 - Every state-changing handler appends an `Activity` entry (`actorId: "agent"`); IDs are `act-webmcp-<timestamp>-<counter>`, avoiding collisions within a session.
+- Private workspaces persist traveler profiles and activity in D1. The client refreshes visible workspaces every eight seconds; organizer updates carry a version for optimistic concurrency.
 
 ## Trust boundaries
 
 | Boundary | Rule |
 |---|---|
 | Agent → App state | Only via registered tool handlers with strict schemas + manual validation. |
+| Invite link → Workspace | High-entropy bearer token; only its SHA-256 hash is stored. Traveler tokens are scoped to one profile; organizer-only actions are rejected server-side and in WebMCP. |
 | App → Inventory API | Read-only `fetch` with `AbortSignal`; response shape-validated before use; failures degrade to seed data. |
 | App → Payment | None. `prepare_booking_draft` opens a human confirmation drawer and returns `purchaseOccurred: false`. Approval records intent only. |
 | Page ↔ Browser | `document.modelContext` (W3C name). The legacy `navigator.modelContext` alias is typed as deprecated but intentionally unused. |

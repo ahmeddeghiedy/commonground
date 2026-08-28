@@ -16,10 +16,10 @@ An agent can inspect the same state humans see, explain conflicts, change agreed
 
 ## Why WebMCP is essential
 
-Without WebMCP, an agent would scrape cards, infer controls, and simulate clicks. CommonGround exposes the decision model directly as 11 typed browser tools:
+Without WebMCP, an agent would scrape cards, infer controls, and simulate clicks. CommonGround exposes the decision model directly as 14 typed browser tools:
 
-- Five read tools for workspace state, constraints, inventory, scenarios, and conflicts.
-- Six write tools for priority changes, locks, vetoes, scenario generation/selection, and booking-draft preparation.
+- Six read tools for collaboration status, workspace state, constraints, inventory, scenarios, and conflicts.
+- Eight write tools for human-gated workspace/invite setup, priority changes, locks, vetoes, scenario generation/selection, and booking-draft preparation.
 - Truthful `readOnlyHint` annotations and `untrustedContentHint` on supplier inventory.
 - Browser cancellation support and structured success/error results.
 - State changes routed through the same React actions as the human interface.
@@ -35,6 +35,7 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 - No payment or reservation endpoint exists.
 - `prepare_booking_draft` explicitly reports `purchaseOccurred: false`.
 - Locked constraints cannot have their priority changed until their owner unlocks them.
+- Traveler-scoped links cannot edit another person's priorities or run organizer-only group actions.
 - Unknown IDs and malformed arguments fail before state mutation.
 - External inventory is normalized, time-bounded, and marked untrusted.
 - Every agent mutation is visible in the activity log.
@@ -42,6 +43,7 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 ## Technical implementation
 
 - Next.js 15, React 19, TypeScript, Zod, and Vitest.
+- D1 persistence with hashed access tokens, role-scoped invites, automatic refresh, and optimistic concurrency for organizer writes.
 - Browser-native `document.modelContext.registerTool` integration.
 - Server-side TrailTrix inventory adapter with a five-second timeout and deterministic fallback inventory.
 - Pure scoring engine for traveler satisfaction, must-have violations, fairness, and scenario generation.
@@ -60,7 +62,7 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 
 | Criterion | CommonGround evidence |
 |---|---|
-| WebMCP leverage | 11 purposeful tools, typed schemas, annotations, cancellation, visible shared state, and browser-native verification. |
+| WebMCP leverage | 14 purposeful tools, typed schemas, role enforcement, annotations, cancellation, visible shared state, and browser-native verification. |
 | Execution | Responsive working application, deterministic fallback, live-ready adapter, tests, production build, and documented demo. |
 | Impact | Reduces planning labor while protecting budget, accessibility, and family requirements for real travel groups. |
 | Creativity | Applies AI to consensus mediation and fairness rather than another itinerary generator or booking chatbot. |

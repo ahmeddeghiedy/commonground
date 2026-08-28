@@ -10,11 +10,14 @@ import { join } from "node:path";
 const APP_URL = process.env.WEBMCP_TEST_URL ?? "http://localhost:3000";
 const SCREENSHOT_PATH = process.env.WEBMCP_SCREENSHOT_PATH;
 const EXPECTED_TOOLS = [
+  "get_collaboration_status",
   "get_workspace_state",
   "list_travelers_and_constraints",
   "search_hotel_inventory",
   "compare_scenarios",
   "explain_conflicts",
+  "open_workspace_setup",
+  "open_invite_traveler",
   "set_constraint_priority",
   "lock_constraint",
   "veto_hotel",

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "vite",
+    "build": "vinext build",
+    "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,11 +16,16 @@
     "next": "15.5.24",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-server-dom-webpack": "19.2.8",
+    "vinext": "1.0.0-beta.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.37.1",
+    "@cloudflare/workers-types": "4.20260515.1",
     "@eslint/eslintrc": "^3.2.0",
     "@next/eslint-plugin-next": "15.5.24",
+    "@openai/sites-vite-plugin": "0.2.0",
     "@rushstack/eslint-patch": "^1.16.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.0",
@@ -28,6 +33,8 @@
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
     "eslint-import-resolver-node": "^0.3.10",
@@ -38,6 +45,9 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^2.1.8"
-  }
+    "vite": "8.0.13",
+    "vitest": "^4.1.11",
+    "wrangler": "4.92.0"
+  },
+  "type": "module"
 }

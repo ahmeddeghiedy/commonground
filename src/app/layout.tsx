@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "CommonGround Travel",
   description:
     "AI-mediated shared hotel decisions for groups of travelers. Decide together, once.",

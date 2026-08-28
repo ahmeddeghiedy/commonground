@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getInventory } from "@/server/services/trailtrix-inventory";
 
@@ -17,7 +16,7 @@ export async function GET(request: Request) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid query", issues: parsed.error.flatten() },
       { status: 400, headers: { "cache-control": "no-store" } }
     );
@@ -26,7 +25,7 @@ export async function GET(request: Request) {
   const ttl = Number(process.env.INVENTORY_CACHE_SECONDS ?? 300);
   const result = await getInventory(parsed.data.nights);
 
-  return NextResponse.json(
+  return Response.json(
     {
       source: result.source,
       destination: parsed.data.destination,

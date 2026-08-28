@@ -56,6 +56,8 @@ Optional live inventory: choose `wadjet` or `custom` through the provider adapte
 
 **Chrome testing**: `chrome://flags/#enable-webmcp-testing` → Enabled → relaunch. The header shows `WebMCP · N tools` when connected. If it says `WebMCP ready · connect browser`, click it for the diagnostic; the website is ready but that browser session has not exposed `document.modelContext`.
 
+**Comet and Firefox**: the complete CommonGround application works, but neither browser currently documents native `document.modelContext` support. The in-product connection center explains the supported setup paths without presenting missing browser capability as an app error. See [browser support and WebMCP enablement](docs/BROWSER_SUPPORT.md) for the maintained compatibility matrix and exact instructions.
+
 For a deterministic browser smoke test, start the production server in one terminal, then run:
 
 ```bash

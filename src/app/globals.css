@@ -317,6 +317,21 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 .cg-readiness strong, .cg-readiness span { display: block; }
 .cg-readiness strong { font-size: 13px; }
 .cg-readiness span { color: var(--muted); font-size: 12px; margin-top: 3px; line-height: 1.4; }
+.cg-browser-dialog { width: min(720px,100%); }
+.cg-browser-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 14px 0; }
+.cg-browser-option { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.025); }
+.cg-browser-option__head { display: flex; align-items: center; gap: 7px; }
+.cg-browser-option__head strong { font-size: 13px; }
+.cg-browser-option p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.48; }
+.cg-support-pill { margin-left: auto; padding: 3px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.cg-support-pill.is-ready { color: var(--accent); background: rgba(110,231,200,.09); border: 1px solid rgba(110,231,200,.24); }
+.cg-support-pill.is-testing { color: #c4b5fd; background: rgba(139,92,246,.1); border: 1px solid rgba(167,139,250,.25); }
+.cg-support-pill.is-fallback { color: var(--muted); background: rgba(148,163,184,.08); border: 1px solid rgba(148,163,184,.2); }
+.cg-browser-note { display: grid; gap: 3px; padding: 11px 13px; border-radius: 11px; background: rgba(110,231,200,.055); }
+.cg-browser-note strong { color: var(--accent); font-size: 12px; }
+.cg-browser-note span { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.cg-browser-links { flex-wrap: wrap; }
+@media (max-width: 620px) { .cg-browser-grid { grid-template-columns: 1fr; } .cg-browser-links .cg-btn { width: 100%; } }
 .cg-demo-steps { list-style: none; margin: 20px 0; padding: 0; display: grid; gap: 10px; }
 .cg-demo-steps li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; padding: 10px; border-radius: 12px; background: rgba(255,255,255,.025); border: 1px solid var(--border); }
 .cg-demo-steps li > span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; color: #07101b; background: linear-gradient(135deg, var(--accent), var(--accent-2)); font-size: 12px; font-weight: 800; }

@@ -6,6 +6,8 @@ Use the public build: **https://commonground-travel.a-deghiedy.chatgpt.site/**
 
 The header must show **WebMCP · 15 tools** before recording or presenting.
 
+For the complete browser compatibility matrix and enablement instructions, see [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md). Use ChatGPT desktop Site Tools or Chrome for the structured-tool demonstration; Comet and Firefox remain valid human-interface demonstrations only until their vendors expose WebMCP.
+
 For the Chrome testing build:
 
 1. Open `chrome://flags/#enable-webmcp-testing`.

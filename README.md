@@ -2,6 +2,10 @@
 
 CommonGround is a multi-traveler hotel decision workspace where an AI agent and humans share one live board. Phase 3 adds **WebMCP**: the page exposes its capabilities as tools via `document.modelContext.registerTool` (W3C WebMCP draft) so an in-browser agent (e.g. ChatGPT in-app browser) can read and — with visible, auditable effects — change the shared state.
 
+**Live:** https://commonground-travel.a-deghiedy.chatgpt.site/
+
+**Presenter runbook:** [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
+
 ## Setup
 
 ```bash
@@ -17,6 +21,8 @@ Optional live inventory: configure the server adapter described in `.env.example
 - **Scenario board**: consensus / value / compromise rankings with fairness scores and per-traveler scores.
 - **Agent rail**: conflicts with suggested resolutions, activity log, prompt box.
 - **Booking drawer**: human-in-the-loop draft; approving records intent only — **no purchase ever occurs**.
+- **Judge mode**: a built-in three-minute walkthrough, WebMCP readiness check, copyable prompts, and deterministic reset.
+- **Production surface**: health endpoint, social share card, robots/sitemap, honest inventory source reporting, and optional origin-trial activation.
 
 ## WebMCP tools
 
@@ -51,7 +57,9 @@ corepack pnpm verify:webmcp
 
 The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 11 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
 
-For a public URL, enroll the deployed origin in Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`. The app emits it as an `Origin-Trial` response header. Local development does not need a token when the testing flag is enabled.
+For a public URL, enroll the deployed origin in Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`. The app emits it as an origin-trial meta tag. Local development does not need a token when the testing flag is enabled.
+
+Production diagnostics are available at [`/api/health`](https://commonground-travel.a-deghiedy.chatgpt.site/api/health). It reports release mode, inventory mode, WebMCP tool count, and the no-autonomous-purchase invariant without exposing secrets.
 
 ## Demo vs live environment
 

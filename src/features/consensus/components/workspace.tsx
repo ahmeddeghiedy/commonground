@@ -15,6 +15,8 @@ import { ScenarioBoard } from "./scenario-board";
 import { AgentRail } from "./agent-rail";
 import { BookingDrawer } from "./booking-drawer";
 import { useCommonGroundWebMCP } from "@/features/webmcp/use-common-ground-webmcp";
+import { Bot, Check, Compass, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { DemoGuide } from "./demo-guide";
 
 type InventoryStatus = "loading" | "ready" | "fallback" | "error";
 
@@ -49,6 +51,7 @@ export function Workspace() {
   const [draft, setDraft] = useState<BookingDraft | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [status, setStatus] = useState<InventoryStatus>("loading");
+  const [showDemoGuide, setShowDemoGuide] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const notify = useCallback((msg: string) => {
@@ -173,12 +176,29 @@ export function Workspace() {
     setSelectedHotelId((cur) => (cur === hotelId ? null : cur));
   }, [notify, state.hotels]);
 
-  const handlePrompt = useCallback((prompt: string) => {
-    setState((s) => ({
-      ...s,
-      activity: logActivity(s.activity, "agent", "scenario-view", `Agent asked: “${prompt}”`),
-    }));
-    notify("Agent is reviewing your question…");
+  const handlePrompt = useCallback(async (prompt: string) => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      notify("Agent prompt copied — paste it into your WebMCP-enabled agent");
+    } catch {
+      notify("Copy unavailable — select the prompt manually");
+    }
+  }, [notify]);
+
+  const resetDemo = useCallback(() => {
+    setState((current) => {
+      const fresh = buildWorkspaceState();
+      return {
+        ...fresh,
+        hotels: current.hotels,
+        scenarios: generateScenarios(current.hotels, fresh.travelers),
+      };
+    });
+    setSelectedScenarioId("consensus");
+    setSelectedHotelId(null);
+    setVetoedHotelIds([]);
+    setDraft(null);
+    notify("Demo reset to a clean, deterministic state");
   }, [notify]);
 
   const approveDraft = useCallback(() => {
@@ -234,6 +254,45 @@ export function Workspace() {
           </div>
         )}
 
+        <section className="cg-hero" aria-labelledby="product-title">
+          <div className="cg-hero-copy">
+            <div className="cg-eyebrow"><Sparkles size={14} /> WebMCP-native group travel</div>
+            <h1 id="product-title">Four travelers. One decision everyone can live with.</h1>
+            <p>
+              CommonGround turns competing budgets, accessibility needs and family preferences into
+              a fair, auditable hotel decision—on the same live board humans and AI agents can use.
+            </p>
+            <div className="cg-hero-actions">
+              <button type="button" className="cg-btn cg-btn--primary cg-btn--hero" onClick={() => setShowDemoGuide(true)}>
+                <Compass size={16} /> Run the 3-minute demo
+              </button>
+              <button type="button" className="cg-btn cg-btn--quiet cg-btn--hero" onClick={resetDemo}>
+                <RotateCcw size={15} /> Reset workspace
+              </button>
+            </div>
+          </div>
+          <div className="cg-command-card" aria-label="WebMCP control surface status">
+            <div className="cg-command-head">
+              <div><Bot size={18} /><span>Agent control surface</span></div>
+              <span className={`cg-status-pill ${webmcp.supported ? "is-ready" : "is-off"}`}>
+                {webmcp.supported ? "Native & ready" : "Enable WebMCP"}
+              </span>
+            </div>
+            <div className="cg-command-metrics">
+              <div><strong>{webmcp.supported ? webmcp.registeredCount : 11}</strong><span>strict tools</span></div>
+              <div><strong>100%</strong><span>visible writes</span></div>
+              <div><strong>0</strong><span>autonomous purchases</span></div>
+            </div>
+            <div className="cg-safety-line"><ShieldCheck size={15} /> Human approval is the final gate</div>
+            <div className="cg-tool-flow">
+              <span><Check size={12} /> Read</span><i />
+              <span><Check size={12} /> Reason</span><i />
+              <span><Check size={12} /> Act</span><i />
+              <span className="is-guarded"><ShieldCheck size={12} /> Approve</span>
+            </div>
+          </div>
+        </section>
+
         <div className="cg-grid">
           <div className="cg-col-people">
             <section className="cg-panel" aria-label="People and priorities">
@@ -287,6 +346,15 @@ export function Workspace() {
           hotelName={state.hotels.find((h) => h.id === draft.hotelId)?.name ?? "Selected hotel"}
           onClose={() => setDraft(null)}
           onApprove={approveDraft}
+        />
+      )}
+
+      {showDemoGuide && (
+        <DemoGuide
+          webmcpReady={webmcp.supported}
+          toolCount={webmcp.registeredCount}
+          onClose={() => setShowDemoGuide(false)}
+          onCopyPrompt={handlePrompt}
         />
       )}
 

@@ -2,12 +2,13 @@
 
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const APP_URL = process.env.WEBMCP_TEST_URL ?? "http://localhost:3000";
+const SCREENSHOT_PATH = process.env.WEBMCP_SCREENSHOT_PATH;
 const EXPECTED_TOOLS = [
   "get_workspace_state",
   "list_travelers_and_constraints",
@@ -226,10 +227,18 @@ async function main() {
   try {
     await client.send("Runtime.enable");
     await client.send("Page.enable");
+    if (SCREENSHOT_PATH) {
+      await client.send("Emulation.setDeviceMetricsOverride", {
+        width: 1440,
+        height: 1200,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+    }
     // The target appears before its initial navigation context settles. A short
     // fixed gate is more reliable than evaluating against that disposable context.
     await sleep(5_000);
-    const result = await evaluate(client, `
+    const result = await waitFor(() => evaluate(client, `
       (async () => {
         const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         const deadline = Date.now() + 15000;
@@ -288,7 +297,7 @@ async function main() {
           consensusVisible,
         };
       })()
-    `);
+    `), "stable WebMCP execution context", 60_000);
 
     const actual = [...result.toolNames].sort();
     const expected = [...EXPECTED_TOOLS].sort();
@@ -301,6 +310,14 @@ async function main() {
     if (!result.changed?.success || !result.compromiseVisible) throw new Error("compromise selection was not visible");
     if (!result.restored?.success || !result.consensusVisible) throw new Error("consensus restoration was not visible");
 
+    if (SCREENSHOT_PATH) {
+      const screenshot = await client.send("Page.captureScreenshot", {
+        format: "png",
+        captureBeyondViewport: false,
+      });
+      await writeFile(SCREENSHOT_PATH, Buffer.from(screenshot.data, "base64"));
+    }
+
     process.stdout.write(`${JSON.stringify({
       success: true,
       url: result.url,
@@ -311,6 +328,7 @@ async function main() {
       reversibleWrite: "select_scenario: compromise -> consensus",
       visibleStateVerified: true,
       executeToolArgumentMode: result.argumentMode,
+      ...(SCREENSHOT_PATH ? { screenshotPath: SCREENSHOT_PATH } : {}),
     }, null, 2)}\n`);
   } finally {
     try {

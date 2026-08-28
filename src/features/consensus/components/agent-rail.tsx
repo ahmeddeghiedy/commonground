@@ -1,6 +1,7 @@
 "use client";
 
 import type { Activity, Conflict, Scenario, Traveler } from "../types";
+import { Bot, Copy, ShieldAlert } from "lucide-react";
 
 export interface AgentRailProps {
   conflicts: Conflict[];
@@ -25,14 +26,14 @@ export function AgentRail(props: AgentRailProps) {
   return (
     <>
       <section className="cg-panel" aria-label="Detected conflicts">
-        <h3 className="cg-panel-title">Conflicts detected</h3>
+        <h3 className="cg-panel-title"><ShieldAlert size={13} /> Conflicts detected</h3>
         {props.conflicts.length === 0 && (
           <p style={{ fontSize: 13, color: "var(--muted)" }}>No active conflicts — smooth sailing.</p>
         )}
         {props.conflicts.map((c) => (
           <div key={c.id} className={`cg-conflict cg-conflict--${c.severity}`}>
             <div>{c.description}</div>
-            <div className="cg-suggestion">💡 {c.suggestedResolution}</div>
+            <div className="cg-suggestion">Resolution: {c.suggestedResolution}</div>
           </div>
         ))}
       </section>
@@ -69,10 +70,11 @@ export function AgentRail(props: AgentRailProps) {
       </section>
 
       <section className="cg-panel" aria-label="Ask the agent">
-        <h3 className="cg-panel-title">Ask the agent</h3>
+        <h3 className="cg-panel-title"><Bot size={13} /> Agent prompt recipes</h3>
+        <p className="cg-rail-intro">Copy a prompt into a WebMCP-enabled agent. Its tool calls will update this board in real time.</p>
         {PROMPTS.map((p) => (
           <button key={p} type="button" className="cg-btn cg-prompt-btn" onClick={() => props.onPrompt(p)}>
-            “{p}”
+            <span>“{p}”</span><Copy size={13} aria-hidden="true" />
           </button>
         ))}
         <button

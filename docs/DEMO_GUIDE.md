@@ -4,7 +4,7 @@ Use the public build: **https://commonground-travel.a-deghiedy.chatgpt.site/**
 
 ## 1. Prepare the browser
 
-The header must show **WebMCP · 15 tools** before recording or presenting.
+The header must show **WebMCP · 17 tools** before recording or presenting.
 
 For the complete browser compatibility matrix and enablement instructions, see [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md). Use ChatGPT desktop Site Tools or Chrome for the structured-tool demonstration; Comet and Firefox remain valid human-interface demonstrations only until their vendors expose WebMCP.
 
@@ -13,7 +13,7 @@ For the Chrome testing build:
 1. Open `chrome://flags/#enable-webmcp-testing`.
 2. Set **WebMCP testing** to Enabled and relaunch Chrome.
 3. Open CommonGround and confirm `document.modelContext` exists in DevTools.
-4. Click **Run the 3-minute demo**. Its readiness card should say **15 WebMCP tools registered**.
+4. Click **Run the 3-minute demo**. Its readiness card should say **17 WebMCP tools registered**.
 
 For a public no-flag judging experience, enroll the exact production origin in the Chrome WebMCP origin trial, set the resulting token as `WEBMCP_ORIGIN_TRIAL_TOKEN` in the Sites environment, then rebuild and deploy. The app emits the token through an `origin-trial` meta tag.
 
@@ -86,18 +86,18 @@ corepack pnpm verify:webmcp
 
 To preserve a visual evidence frame, also set `WEBMCP_SCREENSHOT_PATH` to an absolute `.png` path before running the verifier.
 
-The verifier starts an isolated Chrome profile with WebMCP enabled, requires all 15 tool names, calls `get_workspace_state`, switches to the compromise scenario, confirms the visible UI changed, then restores consensus.
+The verifier starts an isolated Chrome profile with WebMCP enabled, requires all 17 tool names, calls `get_workspace_state`, switches to the compromise scenario, confirms the visible UI changed, then restores consensus.
 
 Production health checks:
 
-- `/api/health` must return `status: "ok"`, `toolCount: 15`, and `autonomousPurchase: false`.
+- `/api/health` must return `status: "ok"`, `toolCount: 17`, and `autonomousPurchase: false`.
 - `/api/inventory` must return normalized hotels and an honest `source` value.
 - `/robots.txt`, `/sitemap.xml`, and `/og.png` must return 200.
 
 ## 4. Recovery during a live demo
 
 - **Badge says “WebMCP ready · connect browser”:** click it for diagnostics. In ChatGPT desktop, enable Browser settings → Permissions → Site Tools and use an eligible account/model; for Chrome testing, confirm the experimental flag and `document.modelContext`.
-- **Tool count is below 15:** hard-refresh once. If still wrong, use a fresh browser profile; registration is cleaned up on unmount.
+- **Tool count is below 17:** hard-refresh once. If still wrong, use a fresh browser profile; registration is cleaned up on unmount.
 - **Inventory API fails:** continue. The app deliberately falls back to deterministic seed inventory and labels it clearly.
 - **The agent chooses a different tool order:** that is fine. Judge the result by the visible board and audit log, not by a scripted chain of internal calls.
 - **A prior take changed the board:** click **Reset workspace** and verify the Consensus tab is active with no hotel selected.
@@ -105,7 +105,7 @@ Production health checks:
 ## 5. Submission evidence checklist
 
 - Public URL loads in an incognito window.
-- Header and demo guide show 15 registered tools in the WebMCP-enabled browser.
+- Header and demo guide show 17 registered tools in the WebMCP-enabled browser.
 - A read call accurately describes every traveler in the workspace.
 - `select_scenario` causes an obvious visible tab change.
 - A constraint mutation appears in the activity log.

@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, RefreshCw, ShieldCheck, X } from "lucide-react";
+import { Database, ExternalLink, KeyRound, RefreshCw, ShieldCheck, X } from "lucide-react";
 
 export interface InventorySourceInfo {
   id: "demo" | "wadjet" | "custom";
@@ -21,6 +21,12 @@ export function InventorySourceDialog({ info, onClose, onRefresh }: { info: Inve
         <p className="cg-dialog-lead">{live ? "Prices and availability are requested server-side and normalized into CommonGround’s provider-neutral hotel model." : info.mode === "fallback" ? `${info.name} could not be reached, so CommonGround automatically switched to the curated catalog.` : "The challenge catalog is deterministic, presentation-safe, and uses the exact same scoring and WebMCP flow as a live supplier."}</p>
         <div className={`cg-readiness ${live ? "is-ready" : "is-warning"}`}><ShieldCheck size={18} /><div><strong>{info.name}</strong><span>{info.fetchedAt ? `Last checked ${new Date(info.fetchedAt).toLocaleString()}. ` : ""}Provider credentials always remain on the server.</span></div></div>
         <div className="cg-provider-flow"><span>Wadjet or another API</span><i>→</i><span>Secure adapter</span><i>→</i><span>Common hotel model</span><i>→</i><span>Fairness engine</span></div>
+        {!live && <div className="cg-provider-checklist">
+          <strong><KeyRound size={15} /> Connect live hotel supply</strong>
+          <ol><li>Obtain an approved partner search endpoint and server credential.</li><li>Configure Wadjet or Custom provider values in the Sites environment.</li><li>Map the supplier response once; the UI, scoring and agent tools remain unchanged.</li><li>Refresh here and confirm the badge changes to Live inventory.</li></ol>
+          <p>Use licensed partner APIs—not consumer-page scraping. Complex supplier payloads can sit behind a small adapter gateway that accepts CommonGround’s destination, check-in, check-out, nights and traveler count.</p>
+          <a href="https://github.com/vteamtech/commonground/blob/main/docs/INTEGRATIONS.md" target="_blank" rel="noreferrer">Open integration guide <ExternalLink size={13} /></a>
+        </div>}
         {info.fallbackReason && <div className="cg-form-error">Fallback reason: {info.fallbackReason}</div>}
         <button type="button" className="cg-btn cg-btn--primary cg-btn--wide" onClick={() => { onRefresh(); onClose(); }}><RefreshCw size={15} /> Refresh inventory</button>
       </section>

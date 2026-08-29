@@ -2,6 +2,7 @@ import type { Hotel, Traveler } from "./types";
 
 export const SEED_NIGHTS = 4;
 export const SEED_DESTINATION = "Lisbon, Portugal";
+export const SEED_CHECK_IN = "2026-10-15";
 
 export const seedTravelers: Traveler[] = [
   {

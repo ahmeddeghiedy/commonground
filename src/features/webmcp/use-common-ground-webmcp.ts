@@ -40,6 +40,8 @@ export interface CommonGroundWebMCPProps {
   openCreateWorkspace: () => void;
   openInviteTraveler: () => void;
   openWorkspaceSettings: () => void;
+  openWorkspaceOnboarding: (step?: number) => void;
+  configureWorkspace: (input: { destination: string; checkIn: string; nights: number; travelerLimit: number }) => void;
 }
 
 export interface CommonGroundWebMCPStatus {
@@ -190,6 +192,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         const s = P.current.state;
         return ok({
           destination: s.destination,
+          checkIn: s.checkIn,
           nights: s.nights,
           travelers: s.travelers.map((t) => ({
             id: t.id,
@@ -251,7 +254,9 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         const maxTotalPrice = typeof a.maxTotalPrice === "number" ? a.maxTotalPrice : undefined;
         const minReviewScore = typeof a.minReviewScore === "number" ? a.minReviewScore : undefined;
         try {
-          const res = await fetch("/api/inventory", { signal });
+          const current = P.current.state;
+          const query = new URLSearchParams({ destination: current.destination, checkIn: current.checkIn, nights: String(current.nights), travelers: String(current.travelers.length) });
+          const res = await fetch(`/api/inventory?${query}`, { signal });
           if (!res.ok) return fail(`inventory HTTP ${res.status}`, "Falling back: use hotels from get_workspace_state.");
           const data = (await res.json()) as unknown;
           const raw = Array.isArray(data) ? data : (data as { hotels?: unknown[] })?.hotels;
@@ -355,7 +360,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
     });
 
     register("open_workspace_settings", {
-      description: "Open the visible organizer-only workspace settings where the human can adjust the planned traveler capacity between 2 and 12. This tool never changes the limit itself.",
+      description: "Open the visible organizer-only workspace settings where the human can adjust the planned traveler capacity between 2 and 30. This tool never changes the limit itself.",
       inputSchema: schema({}, []),
       annotations: { readOnlyHint: false },
       execute: async () => {
@@ -364,6 +369,48 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         if (c.role !== "owner") return fail("Only the organizer can change workspace capacity.");
         P.current.openWorkspaceSettings();
         return ok({ changed: { workspaceSettingsOpened: true }, nextAction: "Ask the organizer to review the visible capacity control and choose Done." });
+      },
+    });
+
+    register("open_workspace_onboarding", {
+      description: "Open the visible organizer setup guide at the requested step: invite travelers, choose predefined priorities, compare scenarios, or connect an agent. Use this to guide a human through the workspace without making hidden changes.",
+      inputSchema: schema({
+        step: enum_("Wizard step to open.", ["invite", "priorities", "compare", "agent"]),
+      }, []),
+      annotations: { readOnlyHint: false },
+      execute: async (args) => {
+        const c = P.current.collaboration;
+        if (c.mode !== "workspace") return fail("No private workspace is open", "Use open_workspace_setup first.");
+        if (c.role !== "owner") return fail("Only the organizer can open the group setup guide.");
+        const requested = (args as { step?: unknown } | null)?.step;
+        const stepIndex = requested === "priorities" ? 1 : requested === "compare" ? 2 : requested === "agent" ? 3 : 0;
+        P.current.openWorkspaceOnboarding(stepIndex);
+        return ok({ changed: { onboardingOpened: true, step: ["invite", "priorities", "compare", "agent"][stepIndex] }, nextAction: "Guide the organizer through the visible step, then continue with the relevant CommonGround tool." });
+      },
+    });
+
+    register("configure_trip_workspace", {
+      description: "Configure an existing private workspace's destination, number of nights, and traveler capacity, then open the visible setup guide. Organizer-only and immediately visible. Confirm the values with the organizer before calling.",
+      inputSchema: schema({
+        destination: str("Destination name, 2 to 120 characters."),
+        checkIn: str("Check-in date in YYYY-MM-DD format."),
+        nights: { type: "integer", minimum: 1, maximum: 30, description: "Length of stay in nights." },
+        travelerLimit: { type: "integer", minimum: 2, maximum: 30, description: "Total traveler seats, including the organizer." },
+      }, ["destination", "checkIn", "nights", "travelerLimit"]),
+      annotations: { readOnlyHint: false },
+      execute: async (args) => {
+        const c = P.current.collaboration;
+        if (c.mode !== "workspace") return fail("No private workspace is open", "Use open_workspace_setup first.");
+        if (c.role !== "owner") return fail("Only the organizer can configure the trip workspace.");
+        const a = (args ?? {}) as Record<string, unknown>;
+        const destination = typeof a.destination === "string" ? a.destination.trim() : "";
+        const checkIn = typeof a.checkIn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(a.checkIn) ? a.checkIn : "";
+        const nights = typeof a.nights === "number" && Number.isInteger(a.nights) ? a.nights : 0;
+        const travelerLimit = typeof a.travelerLimit === "number" && Number.isInteger(a.travelerLimit) ? a.travelerLimit : 0;
+        if (destination.length < 2 || destination.length > 120 || !checkIn || nights < 1 || nights > 30 || travelerLimit < 2 || travelerLimit > 30) return fail("invalid trip configuration", "Use a destination, check-in date, 1–30 nights, and 2–30 traveler seats.");
+        if (travelerLimit < P.current.state.travelers.length) return fail("traveler capacity is below the current group size", `Choose at least ${P.current.state.travelers.length} seats.`);
+        P.current.configureWorkspace({ destination, checkIn, nights, travelerLimit });
+        return ok({ changed: { destination, checkIn, nights, travelerLimit, onboardingOpened: true }, nextAction: "Use open_invite_traveler or continue the visible onboarding guide." });
       },
     });
 

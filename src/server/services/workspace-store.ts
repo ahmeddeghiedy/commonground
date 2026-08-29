@@ -55,8 +55,14 @@ function travelerLimit(row: WorkspaceRow) {
   return typeof limit === "number" && limit >= 2 && limit <= MAX_TRAVELERS ? limit : MAX_TRAVELERS;
 }
 
+function defaultCheckIn() {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + 60);
+  return date.toISOString().slice(0, 10);
+}
+
 function persistedState(state: WorkspaceState, limit = MAX_TRAVELERS): PersistedWorkspaceState {
-  return { travelers: state.travelers, activity: state.activity, travelerLimit: limit };
+  return { travelers: state.travelers, activity: state.activity, travelerLimit: limit, checkIn: state.checkIn };
 }
 
 function hydrateState(row: WorkspaceRow): WorkspaceState {
@@ -67,6 +73,7 @@ function hydrateState(row: WorkspaceRow): WorkspaceState {
     ...base,
     destination: row.destination,
     nights: row.nights,
+    checkIn: typeof stored.checkIn === "string" ? stored.checkIn : defaultCheckIn(),
     travelers,
     activity: Array.isArray(stored.activity) ? stored.activity : [],
     conflicts: detectConflicts(travelers),
@@ -99,6 +106,7 @@ export async function createWorkspace(input: {
   name: string;
   destination: string;
   nights: number;
+  checkIn: string;
   organizerName: string;
   travelerLimit: number;
 }): Promise<{ workspace: CollaborativeWorkspace; ownerToken: string }> {
@@ -119,6 +127,7 @@ export async function createWorkspace(input: {
     ...base,
     destination: input.destination,
     nights: input.nights,
+    checkIn: input.checkIn,
     travelers: [traveler],
     activity: [{ id: `act-${crypto.randomUUID()}`, actorId: traveler.id, kind: "join", detail: `${traveler.name} created the workspace`, at: now }],
     conflicts: [],
@@ -142,6 +151,7 @@ export async function readWorkspace(id: string, token: string): Promise<Collabor
 export async function saveWorkspace(id: string, token: string, input: {
   destination: string;
   nights: number;
+  checkIn: string;
   travelers: Traveler[];
   activity: Activity[];
   travelerLimit: number;
@@ -155,7 +165,7 @@ export async function saveWorkspace(id: string, token: string, input: {
   const nextVersion = row.version + 1;
   const result = await database().prepare(
     "UPDATE workspaces SET destination = ?, nights = ?, state_json = ?, version = ?, updated_at = ? WHERE id = ? AND version = ?"
-  ).bind(input.destination, input.nights, JSON.stringify({ travelers: input.travelers, activity: input.activity.slice(0, 30), travelerLimit: input.travelerLimit }), nextVersion, now, id, expectedVersion).run();
+  ).bind(input.destination, input.nights, JSON.stringify({ travelers: input.travelers, activity: input.activity.slice(0, 30), travelerLimit: input.travelerLimit, checkIn: input.checkIn }), nextVersion, now, id, expectedVersion).run();
   if (!result.meta.changes) throw new Error("VERSION_CONFLICT");
   return { success: true, version: nextVersion };
 }
@@ -171,7 +181,7 @@ export async function saveOwnTraveler(id: string, token: string, traveler: Trave
   const now = new Date().toISOString();
   await database().batch([
     database().prepare("UPDATE workspaces SET state_json = ?, version = version + 1, updated_at = ? WHERE id = ?")
-      .bind(JSON.stringify({ travelers, activity: state.activity.slice(0, 30), travelerLimit: travelerLimit(row) }), now, id),
+      .bind(JSON.stringify({ travelers, activity: state.activity.slice(0, 30), travelerLimit: travelerLimit(row), checkIn: state.checkIn }), now, id),
     database().prepare("UPDATE workspace_members SET status = 'active', name = ?, updated_at = ? WHERE workspace_id = ? AND traveler_id = ?")
       .bind(traveler.name, now, id, traveler.id),
   ]);
@@ -204,7 +214,7 @@ export async function createInvite(id: string, token: string, input: { name: str
       "INSERT INTO workspace_members (id, workspace_id, traveler_id, name, email, token_hash, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'traveler', 'invited', ?, ?)"
     ).bind(crypto.randomUUID(), id, traveler.id, traveler.name, input.email ?? null, await hashToken(inviteToken), now, now),
     database().prepare("UPDATE workspaces SET state_json = ?, version = version + 1, updated_at = ? WHERE id = ?")
-      .bind(JSON.stringify({ travelers, activity, travelerLimit: limit }), now, id),
+      .bind(JSON.stringify({ travelers, activity, travelerLimit: limit, checkIn: state.checkIn }), now, id),
   ]);
   return { travelerId: traveler.id, travelerName: traveler.name, inviteToken };
 }

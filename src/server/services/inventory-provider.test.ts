@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizeHotel } from "./inventory-provider";
 
-const search = { destination: "Barcelona", nights: 4, travelers: 6 };
+const search = { destination: "Barcelona", checkIn: "2026-11-10", nights: 4, travelers: 6 };
 
 describe("normalizeHotel", () => {
   it("normalizes Wadjet-style snake_case fields", () => {

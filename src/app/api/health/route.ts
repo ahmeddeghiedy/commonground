@@ -12,7 +12,7 @@ export async function GET() {
       version: process.env.COMMONGROUND_RELEASE ?? "1.0.0",
       inventory: { provider: inventory.id, providerName: inventory.name, mode: inventory.live ? "live" : "demo", configured: inventory.configured },
       webmcp: {
-        toolCount: 15,
+        toolCount: 17,
         humanApprovalRequired: true,
         autonomousPurchase: false,
         originTrialConfigured: Boolean(process.env.WEBMCP_ORIGIN_TRIAL_TOKEN),

@@ -81,7 +81,7 @@ abort handling where applicable, and visibly update application state.
 - [x] `pnpm lint` — zero errors.
 - [x] `pnpm build` — production build passing.
 - [x] Desktop visual smoke test at 1600×1000.
-- [x] Browser-native verification: all 15 tools discovered; one read and one reversible visible write executed through `document.modelContext`.
+- [x] Browser-native verification: all 17 tools discovered; one read and one reversible visible write executed through `document.modelContext`.
 - [ ] Run the natural-language prompt suite with the final judging agent/browser.
 - [x] Seeded demo verified with all external credentials absent (6 normalized hotels).
 

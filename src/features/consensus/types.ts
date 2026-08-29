@@ -84,6 +84,7 @@ export interface WorkspaceState {
   activity: Activity[];
   nights: number;
   destination: string;
+  checkIn: string;
 }
 
 export interface BookingDraft {

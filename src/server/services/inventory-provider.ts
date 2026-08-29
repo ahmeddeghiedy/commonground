@@ -6,6 +6,7 @@ export type InventoryProviderId = "demo" | "wadjet" | "custom";
 
 export interface InventorySearch {
   destination: string;
+  checkIn: string;
   nights: number;
   travelers: number;
 }
@@ -122,7 +123,16 @@ export async function getInventory(search: InventorySearch, forceDemo = false): 
   try {
     const method = (process.env.INVENTORY_REQUEST_METHOD ?? "GET").toUpperCase() === "POST" ? "POST" : "GET";
     const url = new URL(config.url);
+    const checkOutDate = new Date(`${search.checkIn}T00:00:00.000Z`);
+    checkOutDate.setUTCDate(checkOutDate.getUTCDate() + search.nights);
+    const providerSearch = { ...search, checkOut: checkOutDate.toISOString().slice(0, 10) };
     const headers: Record<string, string> = { accept: "application/json" };
+    if (process.env.INVENTORY_EXTRA_HEADERS_JSON) {
+      try {
+        const extra = JSON.parse(process.env.INVENTORY_EXTRA_HEADERS_JSON) as unknown;
+        if (isRecord(extra)) for (const [header, value] of Object.entries(extra)) if (typeof value === "string") headers[header] = value;
+      } catch { /* Invalid optional header configuration is ignored; the provider call will fall back safely. */ }
+    }
     if (config.key) {
       const header = process.env.INVENTORY_AUTH_HEADER || "authorization";
       const scheme = process.env.INVENTORY_AUTH_SCHEME ?? "Bearer";
@@ -131,9 +141,11 @@ export async function getInventory(search: InventorySearch, forceDemo = false): 
     let body: string | undefined;
     if (method === "POST") {
       headers["content-type"] = "application/json";
-      body = JSON.stringify(search);
+      body = JSON.stringify(providerSearch);
     } else {
       url.searchParams.set("destination", search.destination);
+      url.searchParams.set("checkIn", search.checkIn);
+      url.searchParams.set("checkOut", providerSearch.checkOut);
       url.searchParams.set("nights", String(search.nights));
       url.searchParams.set("travelers", String(search.travelers));
     }

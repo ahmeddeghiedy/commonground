@@ -1,7 +1,7 @@
 import type { Activity, Traveler, WorkspaceState } from "../consensus/types";
 
 export const MIN_TRAVELERS = 2;
-export const MAX_TRAVELERS = 12;
+export const MAX_TRAVELERS = 30;
 
 export type WorkspaceRole = "owner" | "traveler";
 
@@ -19,6 +19,7 @@ export interface PersistedWorkspaceState {
   travelers: Traveler[];
   activity: Activity[];
   travelerLimit?: number;
+  checkIn?: string;
 }
 
 export interface WorkspaceInvite {

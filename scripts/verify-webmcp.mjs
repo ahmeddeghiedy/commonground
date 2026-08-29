@@ -19,6 +19,8 @@ const EXPECTED_TOOLS = [
   "open_workspace_setup",
   "open_invite_traveler",
   "open_workspace_settings",
+  "open_workspace_onboarding",
+  "configure_trip_workspace",
   "set_constraint_priority",
   "lock_constraint",
   "veto_hotel",

@@ -16,10 +16,10 @@ An agent can inspect the same state humans see, explain conflicts, change agreed
 
 ## Why WebMCP is essential
 
-Without WebMCP, an agent would scrape cards, infer controls, and simulate clicks. CommonGround exposes the decision model directly as 15 typed browser tools:
+Without WebMCP, an agent would scrape cards, infer controls, and simulate clicks. CommonGround exposes the decision model directly as 17 typed browser tools:
 
 - Six read tools for collaboration status, workspace state, constraints, inventory, scenarios, and conflicts.
-- Nine write tools for human-gated workspace/invite/settings flows, priority changes, locks, vetoes, scenario generation/selection, and booking-draft preparation.
+- Eleven write tools for human-gated workspace/invite/settings/onboarding flows, agent-assisted trip configuration, priority changes, locks, vetoes, scenario generation/selection, and booking-draft preparation.
 - Truthful `readOnlyHint` annotations and `untrustedContentHint` on supplier inventory.
 - Browser cancellation support and structured success/error results.
 - State changes routed through the same React actions as the human interface.
@@ -62,7 +62,7 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 
 | Criterion | CommonGround evidence |
 |---|---|
-| WebMCP leverage | 15 purposeful tools, typed schemas, role enforcement, annotations, cancellation, visible shared state, and browser-native verification. |
+| WebMCP leverage | 17 purposeful tools, typed schemas, role enforcement, annotations, cancellation, visible shared state, and browser-native verification. |
 | Execution | Responsive working application, deterministic fallback, live-ready adapter, tests, production build, and documented demo. |
 | Impact | Reduces planning labor while protecting budget, accessibility, and family requirements for real travel groups. |
 | Creativity | Applies AI to consensus mediation and fairness rather than another itinerary generator or booking chatbot. |

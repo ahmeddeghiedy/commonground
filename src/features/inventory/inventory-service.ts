@@ -1,5 +1,6 @@
 export interface InventoryQuery {
   destination: string;
+  checkIn: string;
   nights: number;
   travelers: number;
 }
@@ -15,6 +16,7 @@ export interface InventoryResponse {
 export async function fetchInventory(query: InventoryQuery): Promise<InventoryResponse> {
   const params = new URLSearchParams({
     destination: query.destination,
+    checkIn: query.checkIn,
     nights: String(query.nights),
     travelers: String(query.travelers),
   });

@@ -6,7 +6,7 @@ import type {
   Traveler,
   WorkspaceState,
 } from "./types";
-import { SEED_DESTINATION, SEED_NIGHTS, seedHotels, seedTravelers } from "./seed";
+import { SEED_CHECK_IN, SEED_DESTINATION, SEED_NIGHTS, seedHotels, seedTravelers } from "./seed";
 
 const PRIORITY_MULTIPLIER: Record<string, number> = {
   must: 1.5,
@@ -230,5 +230,6 @@ export function buildWorkspaceState(
     })),
     nights: SEED_NIGHTS,
     destination: SEED_DESTINATION,
+    checkIn: SEED_CHECK_IN,
   };
 }

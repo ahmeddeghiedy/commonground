@@ -2,7 +2,16 @@
 
 ## Capacity and roles
 
-CommonGround is designed for groups of **2–12 travelers**. The organizer selects the planned capacity while creating the workspace and can change it later from **Group size**. A workspace begins with the organizer, so it can temporarily contain one person while setup is in progress. The limit cannot be reduced below the current member count.
+CommonGround is designed for groups of **2–30 travelers**. The organizer selects the planned capacity while creating the workspace and can change it later from **Group size**. A workspace begins with the organizer, so it can temporarily contain one person while setup is in progress. The limit cannot be reduced below the current member count.
+
+Creation is a three-step wizard—trip and check-in details, planned group size, then organizer identity. A four-step organizer guide opens automatically after creation:
+
+1. Invite one traveler at a time with a private scoped link.
+2. Add the organizer's budget and predefined priority options.
+3. Review the automatically recalculated consensus, value and compromise boards.
+4. Connect a WebMCP agent or copy the setup prompt so the agent can guide the same workflow.
+
+The guide can be reopened from **Setup guide**. A connected agent can call `open_workspace_onboarding` or, after confirmation, `configure_trip_workspace`; invitations and purchases remain human-gated.
 
 - **Organizer**: creates the workspace, invites travelers, edits trip-level state, can edit every profile when helping the group, and controls shared scenario/veto/booking-draft actions.
 - **Traveler**: opens a personal private link and can edit only their own budget, priorities, and locks. Other profiles are view-only.

@@ -1,0 +1,56 @@
+# Devpost submission copy
+
+## Project name
+
+CommonGround Travel
+
+## One-line description
+
+An agent-assisted workspace that helps travel groups turn conflicting budgets and must-haves into one explainable, human-approved hotel decision.
+
+## Full description
+
+Planning a group trip usually means collecting preferences in a chat, losing important constraints between messages, and letting the loudest person choose. CommonGround gives each traveler a private decision profile and turns the group’s budgets, accessibility needs, location preferences, amenities, and vetoes into a transparent shortlist.
+
+### Why this is a strong fit for WebMCP
+
+Group travel decisions are stateful, collaborative, and full of permission boundaries. An agent needs more than page text: it needs structured access to the current travelers, constraints, inventory, conflicts, scenarios, and booking state. CommonGround exposes those capabilities directly from the live web application as seventeen typed WebMCP tools. The website remains the shared source of truth for both people and agents.
+
+### How it creates a better experience
+
+Instead of asking an organizer to copy preferences into an AI chat or guide an agent through a fragile series of clicks, the agent can read the current workspace, search normalized hotel inventory, explain the real trade-offs, and compare scoring scenarios. With approval, it can make visible changes such as selecting a scenario or updating a traveler’s priority. Every change appears immediately in the interface and is added to the activity log.
+
+### What people and agents can now do together
+
+A group can ask, “Find the fairest option that protects accessibility and keeps us near our budgets.” The agent can inspect every member’s constraints, identify the budget-versus-location conflict, switch the visible ranking to Balanced Compromise, and prepare a booking draft in one guided interaction. Humans still control invitation links, ambiguous preference changes, vetoes, and the final purchase. This combination was difficult with a conventional travel site because the agent could not reliably understand shared group state or act through explicit, permission-aware controls.
+
+### How WebMCP is implemented
+
+CommonGround feature-detects `document.modelContext` and registers seventeen tools with explicit names, descriptions, JSON input schemas, annotations, and execution handlers. Read tools expose collaboration status, workspace state, traveler constraints, hotel inventory, scenario comparisons, and conflict explanations. Write tools open visible setup surfaces, configure an organizer’s workspace, change approved priorities, lock constraints, add vetoes, generate scenarios, select a scenario, and prepare a booking draft. Tool handlers reuse the same application state and scoring functions as the human interface. There is no hidden purchase path.
+
+### Product and data architecture
+
+An organizer can create a private workspace for two to thirty travelers. Each invitation token is scoped to one person, and each traveler edits only their own profile. The app includes a guided creation and onboarding journey, predefined travel priorities, explainable group scoring, an activity log, and a human confirmation boundary before booking.
+
+The deployed challenge build uses clearly labeled curated demo inventory so judges receive deterministic results. A provider adapter can connect the same search and scoring experience to TravelWithWadjet, Booking.com Demand, Expedia Rapid, or another licensed hotel inventory API without changing the WebMCP tools or the consensus model.
+
+## Technologies
+
+WebMCP, React 19, Next.js-compatible routing through vinext, TypeScript, Cloudflare Workers and D1, Codex Sites, Vitest, and Zod.
+
+## Testing instructions
+
+1. Open the live URL in ChatGPT’s in-app browser or Google Chrome with WebMCP enabled.
+2. Confirm the header shows “WebMCP on.”
+3. Ask the browser agent: “Inspect this group’s hotel constraints, explain the biggest conflict, switch to Balanced Compromise, and prepare a booking draft. Do not purchase anything.”
+4. Confirm that the scenario selection changes visibly and the booking draft opens.
+5. Optionally choose “Create your trip workspace” to test the three-step workspace wizard and the post-creation onboarding guide.
+
+No login or test credentials are required for the public demo.
+
+## Links
+
+- Live application: https://commonground-travel.a-deghiedy.chatgpt.site/
+- Source repository: https://github.com/vteamtech/commonground
+- Video: TO BE ADDED AFTER PUBLIC YOUTUBE UPLOAD
+

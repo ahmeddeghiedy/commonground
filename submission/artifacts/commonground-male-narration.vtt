@@ -1,0 +1,96 @@
+1
+00:00:00,100 --> 00:00:04,054
+Four friends want one hotel, but their needs conflict.
+
+2
+00:00:04,004 --> 00:00:06,669
+One needs step-free access.
+
+3
+00:00:06,669 --> 00:00:09,144
+Another cares about the beach.
+
+4
+00:00:09,144 --> 00:00:11,644
+Everyone has a different budget.
+
+5
+00:00:11,644 --> 00:00:19,820
+I can ask an agent to find the fairest option, and it starts by reading the group's real, current workspace through Web M C P.
+
+6
+00:00:19,820 --> 00:00:23,812
+CommonGround exposes seventeen typed browser tools.
+
+7
+00:00:23,812 --> 00:00:27,549
+The agent does not scrape the page or guess where to click.
+
+8
+00:00:27,549 --> 00:00:35,458
+It receives structured travelers, must-haves, preferences, budgets, hotel inventory, and the current scenario.
+
+9
+00:00:35,458 --> 00:00:41,567
+It searches the normalized inventory and asks CommonGround to explain the group's actual trade-offs.
+
+10
+00:00:41,567 --> 00:00:49,718
+The strongest conflict is clear: the beachfront favorite stretches the budget, while the accessible city option sacrifices the beach.
+
+11
+00:00:49,718 --> 00:00:53,889
+With approval, the agent switches to Balanced Compromise.
+
+12
+00:00:53,889 --> 00:00:57,141
+That is a real Web M C P write action.
+
+13
+00:00:57,141 --> 00:01:04,144
+The visible interface changes immediately, the ranking is recalculated, and the action is logged for the group.
+
+14
+00:01:04,144 --> 00:01:12,626
+Next, the agent prepares a booking draft with the selected hotel, dates, party size, price, and unresolved warnings.
+
+15
+00:01:12,626 --> 00:01:15,037
+It cannot purchase anything.
+
+16
+00:01:15,037 --> 00:01:22,422
+CommonGround deliberately stops at the human approval boundary, so automation is useful without becoming invisible or risky.
+
+17
+00:01:22,422 --> 00:01:27,014
+This is also a complete group product, not a single demo screen.
+
+18
+00:01:27,014 --> 00:01:32,843
+An organizer creates a private trip in three short steps, for up to thirty travelers.
+
+19
+00:01:32,843 --> 00:01:42,039
+The guided checklist then helps them invite people by private link, choose predefined priorities, compare fair scenarios, and connect an agent.
+
+20
+00:01:42,039 --> 00:01:45,649
+Each traveler controls only their own profile.
+
+21
+00:01:45,649 --> 00:01:55,241
+Demo inventory can be replaced by TravelWithWadjet, Booking.com Demand, Expedia Rapid, or another licensed provider through one server-side adapter.
+
+22
+00:01:55,241 --> 00:02:02,116
+Web M C P is the right fit because the agent and the humans share the same live state and the same visible interface.
+
+23
+00:02:02,116 --> 00:02:09,208
+CommonGround turns a messy group chat into an explainable decision everyone can inspect, influence, and trust.
+
+24
+00:02:09,208 --> 00:02:15,623
+CommonGround: group travel decisions that agents can help with, without taking control away from people.
+

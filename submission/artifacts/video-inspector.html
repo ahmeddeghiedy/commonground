@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #050914; }
+      video { display: block; width: 100%; height: 100%; object-fit: contain; }
+    </style>
+  </head>
+  <body>
+    <video id="source" muted preload="auto" src="commonground-demo-silent.mp4"></video>
+    <script>
+      const video = document.getElementById("source");
+      const requested = Number(new URLSearchParams(location.search).get("t") || 0);
+      video.addEventListener("loadedmetadata", () => { document.title = `duration:${video.duration}`; video.currentTime = requested; });
+      video.addEventListener("seeked", () => document.body.dataset.ready = "true");
+    </script>
+  </body>
+</html>

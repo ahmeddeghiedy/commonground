@@ -4,6 +4,17 @@ CommonGround is a multi-traveler hotel decision workspace where an AI agent and 
 
 **Live:** https://commonground-travel.a-deghiedy.chatgpt.site/
 
+**Challenge submission package:** [`submission/`](submission/) contains the exact Devpost copy, judge testing steps, timed demo script, capture plan, narration, and final deadline checklist.
+
+### Judge quick path
+
+1. Open the live application in ChatGPT’s in-app browser or Chrome with WebMCP enabled.
+2. Confirm the header reports `WebMCP · 17 tools`.
+3. Ask: “Inspect this group’s hotel constraints, explain the biggest conflict, switch to Balanced Compromise, and prepare a booking draft. Do not purchase anything.”
+4. Watch the shared scenario change visibly and review the human-confirmation booking draft.
+
+No login or testing credentials are required. The deployed challenge catalog is deterministic demo inventory and is labeled as such in the interface.
+
 **Presenter runbook:** [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)
 
 **Workspace, invite, and scoring model:** [`docs/COLLABORATION.md`](docs/COLLABORATION.md)

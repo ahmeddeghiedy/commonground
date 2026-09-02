@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:webmcp": "node scripts/verify-webmcp.mjs"
+    "verify:webmcp": "node scripts/verify-webmcp.mjs",
+    "capture:demo": "node scripts/capture-submission-demo.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

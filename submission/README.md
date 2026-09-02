@@ -7,6 +7,7 @@ This directory contains the materials needed to complete the WebMCP Challenge su
 - `DEVPOST_SUBMISSION.md` — ready-to-paste title, descriptions, implementation explanation, and testing instructions.
 - `VIDEO_SCRIPT.md` — timed narration and matching screen direction.
 - `SHOT_LIST.md` — production checklist for every clip and the proof it gives judges.
+- `AGENT_CAPTURE_RUNBOOK.md` — exact prompt and acceptance gate for the genuine external Site Tools clip.
 - `NARRATION.txt` — source narration used for the male voice track.
 - `SUBMISSION_CHECKLIST.md` — official requirements and final quality gates.
 - `artifacts/commonground-male-narration.mp3` — generated male neural narration.

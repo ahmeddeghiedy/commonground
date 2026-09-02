@@ -21,6 +21,8 @@ No login or testing credentials are required. The deployed challenge catalog is 
 
 **Wadjet, custom inventory, and demo data:** [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md)
 
+**Dated production test evidence:** [`docs/VERIFICATION_EVIDENCE.md`](docs/VERIFICATION_EVIDENCE.md)
+
 ## Setup
 
 ```bash
@@ -90,7 +92,7 @@ corepack pnpm start
 corepack pnpm verify:webmcp
 ```
 
-The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 27 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
+The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 27 registered names, executes workspace and onboarding reads, visibly selects and restores a hotel, switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
 
 For a public URL, enroll the deployed origin in Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`. The app emits it as an origin-trial meta tag. Local development does not need a token when the testing flag is enabled.
 

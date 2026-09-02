@@ -3,8 +3,8 @@
 ## Repository
 
 - [x] Initialize the Git repository on `main` and connect `vteamtech/commonground`.
-- [ ] Confirm `pnpm-lock.yaml`, `LICENSE`, `.env.example`, and documentation are committed.
-- [ ] Confirm `.env*`, `.next`, and `node_modules` are not committed.
+- [x] Confirm `pnpm-lock.yaml`, `LICENSE`, `.env.example`, and documentation are committed.
+- [x] Confirm secrets, `.next`, and `node_modules` are not committed.
 - [x] Add repository URL to `docs/SUBMISSION.md`.
 - [ ] Make the repository public before submission.
 
@@ -19,10 +19,10 @@
 
 ## Verification
 
-- [x] `pnpm test` — 18 tests passing.
+- [x] `pnpm test` — 21 tests passing.
 - [x] `pnpm lint` — zero errors.
 - [x] `pnpm build` — production build passing.
-- [ ] `pnpm verify:webmcp` — 27 tools registered, read executed, visible reversible write verified.
+- [x] `pnpm verify:webmcp` — 27 production tools registered; onboarding/state reads and visible hotel/scenario writes verified on September 2, 2026.
 - [ ] Run every prompt in `WEBMCP_EVALS.md` with the final agent/browser.
 - [ ] Verify desktop and mobile layouts on the deployed URL.
 - [ ] Verify the fallback demo with supplier credentials removed.
@@ -31,6 +31,7 @@
 
 - [ ] Record a clean sub-three-minute video using `docs/DEMO_SCRIPT.md`.
 - [ ] Add captions and zoom enough for the activity log and safety boundary to remain legible.
-- [ ] Capture a hero screenshot and a WebMCP DevTools/Inspector screenshot showing all 27 tools.
+- [x] Capture a production hero screenshot showing the connected 27-tool status.
+- [ ] Capture the recognizable ChatGPT/Codex Site Tools conversation beside CommonGround for the replacement video.
 - [ ] Complete the Devpost copy from `docs/SUBMISSION.md`.
 - [ ] Confirm all links are public in an incognito browser.

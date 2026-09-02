@@ -5,11 +5,11 @@
 - [x] Working public live URL
 - [x] No login required for the demo
 - [x] WebMCP implementation works in enabled Chrome
-- [ ] Twenty-seven registered tools verified in production after the current deployment
+- [x] Twenty-seven registered tools verified in production after version 9 deployment
 - [x] Human-visible write action verified in production
 - [x] Open-source `LICENSE` file present and detected as MIT
 - [ ] GitHub repository visibility changed from private to public
-- [x] Agent-enhanced final video rendered under three minutes (approximately 2:15, Adobe render verified)
+- [ ] Replacement final video rendered under three minutes with the recognizable ChatGPT/Codex Site Tools conversation
 - [ ] Final video watched end-to-end with sound
 - [ ] Final video uploaded publicly to YouTube
 - [ ] YouTube URL added to README and Devpost

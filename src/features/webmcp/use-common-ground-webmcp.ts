@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type {
   Activity,
+  Constraint,
   Hotel,
   Priority,
   Scenario,
@@ -42,6 +43,11 @@ export interface CommonGroundWebMCPProps {
   openWorkspaceSettings: () => void;
   openWorkspaceOnboarding: (step?: number) => void;
   configureWorkspace: (input: { destination: string; checkIn: string; nights: number; travelerLimit: number }) => void;
+  createWorkspace: (input: { name: string; destination: string; checkIn: string; nights: number; organizerName: string; travelerLimit: number }) => Promise<{ workspaceId: string; workspacePath: string }>;
+  listInvitations: () => Promise<unknown[]>;
+  createInvitation: (input: { name: string; email?: string }) => Promise<Record<string, unknown>>;
+  revokeInvitation: (travelerId: string) => Promise<void>;
+  setWorkspaceCapacity: (travelerLimit: number) => void;
 }
 
 export interface CommonGroundWebMCPStatus {
@@ -51,6 +57,7 @@ export interface CommonGroundWebMCPStatus {
 
 const PRIORITIES: Priority[] = ["must", "prefer", "flexible", "exclude"];
 const SCENARIO_IDS: Scenario["id"][] = ["consensus", "value", "compromise"];
+const CONSTRAINT_CATEGORIES: Constraint["category"][] = ["accessibility", "family", "amenity", "location", "budget", "cancellation", "rating"];
 
 function schema(properties: Record<string, unknown>, required: string[]): WebMCPJsonSchema {
   return { type: "object", properties, required, additionalProperties: false };
@@ -333,6 +340,27 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       },
     });
 
+    register("get_onboarding_status", {
+      description: "Read setup progress for the current workspace: capacity, invitations or traveler seats, completed priority profiles, inventory readiness, and whether a scenario and hotel are selected.",
+      inputSchema: schema({}, []),
+      annotations: { readOnlyHint: true },
+      execute: async () => {
+        const s = P.current.state;
+        const completedProfiles = s.travelers.filter((traveler) => traveler.constraints.length > 0).length;
+        return ok({
+          workspaceCreated: P.current.collaboration.mode === "workspace",
+          travelerCount: s.travelers.length,
+          travelerLimit: P.current.collaboration.maxTravelers,
+          completedPriorityProfiles: completedProfiles,
+          incompletePriorityProfiles: s.travelers.filter((traveler) => traveler.constraints.length === 0).map((traveler) => ({ id: traveler.id, name: traveler.name })),
+          inventoryLoaded: s.hotels.length > 0,
+          selectedScenarioId: P.current.selectedScenarioId,
+          selectedHotelId: P.current.selectedHotelId,
+          nextAction: P.current.collaboration.mode !== "workspace" ? "Create a private workspace." : s.travelers.length < P.current.collaboration.maxTravelers ? "Invite the remaining travelers or continue with current group." : completedProfiles < s.travelers.length ? "Complete the remaining traveler profiles." : "Compare scenarios and select a hotel.",
+        });
+      },
+    });
+
     // ---------- WRITE TOOLS ----------
 
     register("open_workspace_setup", {
@@ -342,6 +370,35 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       execute: async () => {
         P.current.openCreateWorkspace();
         return ok({ workspaceCreated: false, changed: { setupDialogOpened: true }, nextAction: "Ask the human to complete and submit the visible workspace form." });
+      },
+    });
+
+    register("create_workspace", {
+      description: "Create a durable private CommonGround workspace from confirmed trip details, save organizer access in this browser, and navigate to the guided setup. State-changing; confirm all values with the human before calling.",
+      inputSchema: schema({
+        name: str("Workspace name, 2 to 80 characters."),
+        destination: str("Destination, 2 to 120 characters."),
+        checkIn: str("Check-in date in YYYY-MM-DD format."),
+        nights: { type: "integer", minimum: 1, maximum: 30, description: "Length of stay." },
+        organizerName: str("Organizer name, 1 to 60 characters."),
+        travelerLimit: { type: "integer", minimum: 2, maximum: 30, description: "Traveler seats including organizer." },
+      }, ["name", "destination", "checkIn", "nights", "organizerName", "travelerLimit"]),
+      execute: async (args) => {
+        if (P.current.collaboration.mode === "workspace") return fail("A private workspace is already open.");
+        const a = (args ?? {}) as Record<string, unknown>;
+        const input = {
+          name: typeof a.name === "string" ? a.name.trim() : "",
+          destination: typeof a.destination === "string" ? a.destination.trim() : "",
+          checkIn: typeof a.checkIn === "string" ? a.checkIn : "",
+          nights: typeof a.nights === "number" ? a.nights : 0,
+          organizerName: typeof a.organizerName === "string" ? a.organizerName.trim() : "",
+          travelerLimit: typeof a.travelerLimit === "number" ? a.travelerLimit : 0,
+        };
+        if (input.name.length < 2 || input.destination.length < 2 || !/^\d{4}-\d{2}-\d{2}$/.test(input.checkIn) || !Number.isInteger(input.nights) || input.nights < 1 || input.nights > 30 || !input.organizerName || !Number.isInteger(input.travelerLimit) || input.travelerLimit < 2 || input.travelerLimit > 30) return fail("invalid workspace details", "Confirm the name, destination, date, 1–30 nights, organizer, and 2–30 seats.");
+        try {
+          const created = await P.current.createWorkspace(input);
+          return ok({ changed: { workspaceCreated: true, ...created }, nextAction: "Continue in the new workspace and create traveler invitations." });
+        } catch (error) { return fail(String(error)); }
       },
     });
 
@@ -356,6 +413,44 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         if (P.current.state.travelers.length >= c.maxTravelers) return fail(`This workspace already has the maximum ${c.maxTravelers} travelers.`);
         P.current.openInviteTraveler();
         return ok({ inviteCreated: false, changed: { inviteDialogOpened: true }, nextAction: "Ask the organizer to complete the visible form and copy the generated private link." });
+      },
+    });
+
+    register("list_invitations", {
+      description: "List organizer-visible traveler invitations and their invited or active status. Does not expose private invite tokens.",
+      inputSchema: schema({}, []),
+      annotations: { readOnlyHint: true },
+      execute: async () => {
+        if (ownerRequired() || P.current.collaboration.mode !== "workspace") return fail("Only the organizer of a private workspace can list invitations.");
+        try { return ok({ invitations: await P.current.listInvitations(), nextAction: "Create another invitation or revoke an unused link if requested." }); }
+        catch (error) { return fail(String(error)); }
+      },
+    });
+
+    register("create_invitation", {
+      description: "Create one private traveler-scoped invitation link. Organizer-only. Returns the link for human review and manual sharing; never sends email, WhatsApp, or any external message automatically.",
+      inputSchema: schema({ name: str("Traveler name."), email: str("Optional email address stored with the invitation; no message is sent.") }, ["name"]),
+      execute: async (args) => {
+        if (ownerRequired() || P.current.collaboration.mode !== "workspace") return fail("Only the organizer of a private workspace can create invitations.");
+        if (P.current.state.travelers.length >= P.current.collaboration.maxTravelers) return fail("Workspace traveler capacity has been reached.");
+        const a = (args ?? {}) as Record<string, unknown>;
+        const name = typeof a.name === "string" ? a.name.trim() : "";
+        const email = typeof a.email === "string" ? a.email.trim() : undefined;
+        if (!name || name.length > 60) return fail("invalid traveler name");
+        try { return ok({ changed: await P.current.createInvitation({ name, ...(email ? { email } : {}) }), nextAction: "Show the private link to the organizer and ask them to share it with only that traveler." }); }
+        catch (error) { return fail(String(error)); }
+      },
+    });
+
+    register("revoke_invitation", {
+      description: "Remove an invited traveler and permanently invalidate their private access link. Organizer-only and destructive; require explicit human confirmation before calling.",
+      inputSchema: schema({ travelerId: str("Traveler invitation to revoke, from list_invitations.") }, ["travelerId"]),
+      execute: async (args) => {
+        if (ownerRequired() || P.current.collaboration.mode !== "workspace") return fail("Only the organizer can revoke invitations.");
+        const travelerId = requireString((args as Record<string, unknown> | null)?.travelerId);
+        if (!travelerId) return fail("travelerId is required");
+        try { await P.current.revokeInvitation(travelerId); return ok({ changed: { travelerId, invitationRevoked: true, travelerRemoved: true }, nextAction: "Refresh collaboration status before creating another invitation." }); }
+        catch (error) { return fail(String(error)); }
       },
     });
 
@@ -411,6 +506,72 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         if (travelerLimit < P.current.state.travelers.length) return fail("traveler capacity is below the current group size", `Choose at least ${P.current.state.travelers.length} seats.`);
         P.current.configureWorkspace({ destination, checkIn, nights, travelerLimit });
         return ok({ changed: { destination, checkIn, nights, travelerLimit, onboardingOpened: true }, nextAction: "Use open_invite_traveler or continue the visible onboarding guide." });
+      },
+    });
+
+    register("set_workspace_capacity", {
+      description: "Set traveler capacity between 2 and 30 for an existing private workspace. Organizer-only and visible; cannot reduce below the current traveler count.",
+      inputSchema: schema({ travelerLimit: { type: "integer", minimum: 2, maximum: 30, description: "New total seat capacity." } }, ["travelerLimit"]),
+      execute: async (args) => {
+        if (ownerRequired() || P.current.collaboration.mode !== "workspace") return fail("Only the organizer can change capacity.");
+        const value = (args as { travelerLimit?: unknown } | null)?.travelerLimit;
+        if (typeof value !== "number" || !Number.isInteger(value) || value < 2 || value > 30) return fail("travelerLimit must be an integer from 2 to 30");
+        if (value < P.current.state.travelers.length) return fail("capacity cannot be below current traveler count");
+        P.current.setWorkspaceCapacity(value);
+        return ok({ changed: { travelerLimit: value }, nextAction: "Call get_collaboration_status to confirm available seats." });
+      },
+    });
+
+    register("update_traveler_profile", {
+      description: "Update an authorized traveler's display name and/or maximum nightly budget. Visible and permission-scoped; recalculates scenarios. Ask the traveler before changing values.",
+      inputSchema: schema({ travelerId: str("Traveler to update."), name: str("Optional new display name."), budgetPerNight: { type: "number", minimum: 20, maximum: 5000, description: "Optional nightly budget in euros." } }, ["travelerId"]),
+      execute: async (args) => {
+        const a = (args ?? {}) as Record<string, unknown>;
+        const travelerId = requireString(a.travelerId);
+        if (!travelerId || !P.current.canEditTraveler(travelerId)) return fail("You can edit only an authorized traveler profile.");
+        const traveler = P.current.state.travelers.find((item) => item.id === travelerId);
+        if (!traveler) return fail("traveler not found");
+        const name = typeof a.name === "string" ? a.name.trim() : traveler.name;
+        const budget = typeof a.budgetPerNight === "number" ? a.budgetPerNight : traveler.budgetPerNight;
+        if (!name || name.length > 60 || budget < 20 || budget > 5000) return fail("invalid profile values");
+        P.current.setState((s) => {
+          const travelers = s.travelers.map((item) => item.id === travelerId ? { ...item, name, budgetPerNight: budget, constraints: item.constraints.map((constraint) => constraint.category === "budget" ? { ...constraint, label: `Under €${budget}/night` } : constraint) } : item);
+          return { ...s, travelers, ...recalc(travelers, s.hotels), activity: logActivity(s.activity, "constraint-update", `Agent updated ${name}'s traveler profile`) };
+        });
+        return ok({ changed: { travelerId, name, budgetPerNight: budget }, nextAction: "Review the updated profile and compare scenarios." });
+      },
+    });
+
+    register("add_constraint", {
+      description: "Add a decision constraint to an authorized traveler profile. Visible and permission-scoped; recalculates scenarios. Confirm label, category, and priority with the traveler.",
+      inputSchema: schema({ travelerId: str("Traveler to update."), label: str("Constraint label."), category: enum_("Constraint category.", CONSTRAINT_CATEGORIES), priority: enum_("Priority.", PRIORITIES), locked: { type: "boolean", description: "Whether the new rule is locked." } }, ["travelerId", "label", "category", "priority"]),
+      execute: async (args) => {
+        const a = (args ?? {}) as Record<string, unknown>;
+        const travelerId = requireString(a.travelerId); const label = requireString(a.label);
+        const category = CONSTRAINT_CATEGORIES.includes(a.category as Constraint["category"]) ? a.category as Constraint["category"] : null;
+        const priority = PRIORITIES.includes(a.priority as Priority) ? a.priority as Priority : null;
+        if (!travelerId || !label || !category || !priority || !P.current.canEditTraveler(travelerId)) return fail("invalid or unauthorized constraint");
+        const traveler = P.current.state.travelers.find((item) => item.id === travelerId);
+        if (!traveler) return fail("traveler not found");
+        if (traveler.constraints.length >= 20) return fail("traveler already has the maximum 20 constraints");
+        if (traveler.constraints.some((constraint) => constraint.label.toLowerCase() === label.toLowerCase())) return fail("constraint already exists");
+        const constraint: Constraint = { id: `c-${travelerId}-${crypto.randomUUID()}`, label: label.slice(0, 120), category, priority, weight: priority === "must" ? 1.25 : 1, locked: typeof a.locked === "boolean" ? a.locked : priority === "must" };
+        P.current.setState((s) => { const travelers = s.travelers.map((item) => item.id === travelerId ? { ...item, constraints: [...item.constraints, constraint] } : item); return { ...s, travelers, ...recalc(travelers, s.hotels), activity: logActivity(s.activity, "constraint-add", `Agent added "${constraint.label}" for ${traveler.name}`) }; });
+        return ok({ changed: { travelerId, constraint }, nextAction: "Compare scenarios to show the effect." });
+      },
+    });
+
+    register("remove_constraint", {
+      description: "Remove an unlocked constraint from an authorized traveler profile. Destructive and visible; require explicit traveler confirmation. Locked constraints must be unlocked first.",
+      inputSchema: schema({ travelerId: str("Owning traveler."), constraintId: str("Constraint to remove.") }, ["travelerId", "constraintId"]),
+      execute: async (args) => {
+        const a = (args ?? {}) as Record<string, unknown>; const travelerId = requireString(a.travelerId); const constraintId = requireString(a.constraintId);
+        if (!travelerId || !constraintId || !P.current.canEditTraveler(travelerId)) return fail("invalid or unauthorized constraint");
+        const traveler = P.current.state.travelers.find((item) => item.id === travelerId); const constraint = traveler?.constraints.find((item) => item.id === constraintId);
+        if (!traveler || !constraint) return fail("traveler or constraint not found");
+        if (constraint.locked) return fail("constraint is locked", "Unlock it first with lock_constraint after traveler confirmation.");
+        P.current.setState((s) => { const travelers = s.travelers.map((item) => item.id === travelerId ? { ...item, constraints: item.constraints.filter((rule) => rule.id !== constraintId) } : item); return { ...s, travelers, ...recalc(travelers, s.hotels), activity: logActivity(s.activity, "constraint-update", `Agent removed "${constraint.label}" for ${traveler.name}`) }; });
+        return ok({ changed: { travelerId, constraintId, removed: true }, nextAction: "Compare scenarios to show the effect." });
       },
     });
 
@@ -562,6 +723,23 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
           changed: { selectedScenarioId: scenarioId },
           nextAction: "Summarize the top hotels with compare_scenarios.",
         });
+      },
+    });
+
+    register("select_hotel", {
+      description: "Select or clear a hotel on the visible board without preparing a booking draft. Organizer-only for private workspaces; cannot select a vetoed hotel.",
+      inputSchema: schema({ hotelId: str("Hotel to select. Pass 'none' to clear selection.") }, ["hotelId"]),
+      execute: async (args) => {
+        if (ownerRequired()) return fail("Only the organizer can change the shared hotel selection.");
+        const hotelId = requireString((args as Record<string, unknown> | null)?.hotelId);
+        if (!hotelId) return fail("hotelId is required");
+        if (hotelId === "none") { P.current.setSelectedHotelId(null); return ok({ changed: { selectedHotelId: null } }); }
+        const hotel = P.current.state.hotels.find((item) => item.id === hotelId);
+        if (!hotel) return fail("hotel not found");
+        if (P.current.vetoedHotelIds.includes(hotelId)) return fail("hotel is vetoed");
+        P.current.setSelectedHotelId(hotelId);
+        P.current.setState((s) => ({ ...s, activity: logActivity(s.activity, "scenario-view", `Agent selected ${hotel.name}`) }));
+        return ok({ changed: { selectedHotelId: hotelId, hotelName: hotel.name }, nextAction: "Prepare a booking draft only if the humans ask." });
       },
     });
 

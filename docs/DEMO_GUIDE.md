@@ -4,7 +4,7 @@ Use the public build: **https://commonground-travel.a-deghiedy.chatgpt.site/**
 
 ## 1. Prepare the browser
 
-The header must show **WebMCP · 17 tools** before recording or presenting.
+The header must show **WebMCP · 27 tools** before recording or presenting.
 
 For the complete browser compatibility matrix and enablement instructions, see [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md). Use ChatGPT desktop Site Tools or Chrome for the structured-tool demonstration; Comet and Firefox remain valid human-interface demonstrations only until their vendors expose WebMCP.
 
@@ -86,11 +86,11 @@ corepack pnpm verify:webmcp
 
 To preserve a visual evidence frame, also set `WEBMCP_SCREENSHOT_PATH` to an absolute `.png` path before running the verifier.
 
-The verifier starts an isolated Chrome profile with WebMCP enabled, requires all 17 tool names, calls `get_workspace_state`, switches to the compromise scenario, confirms the visible UI changed, then restores consensus.
+The verifier starts an isolated Chrome profile with WebMCP enabled, requires all 27 tool names, calls `get_workspace_state`, switches to the compromise scenario, confirms the visible UI changed, then restores consensus.
 
 Production health checks:
 
-- `/api/health` must return `status: "ok"`, `toolCount: 17`, and `autonomousPurchase: false`.
+- `/api/health` must return `status: "ok"`, `toolCount: 27`, and `autonomousPurchase: false`.
 - `/api/inventory` must return normalized hotels and an honest `source` value.
 - `/robots.txt`, `/sitemap.xml`, and `/og.png` must return 200.
 
@@ -105,7 +105,7 @@ Production health checks:
 ## 5. Submission evidence checklist
 
 - Public URL loads in an incognito window.
-- Header and demo guide show 17 registered tools in the WebMCP-enabled browser.
+- Header and demo guide show 27 registered tools in the WebMCP-enabled browser.
 - A read call accurately describes every traveler in the workspace.
 - `select_scenario` causes an obvious visible tab change.
 - A constraint mutation appears in the activity log.

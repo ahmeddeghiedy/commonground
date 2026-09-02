@@ -5,7 +5,7 @@
 - [x] Working public live URL
 - [x] No login required for the demo
 - [x] WebMCP implementation works in enabled Chrome
-- [x] Seventeen registered tools verified in production
+- [ ] Twenty-seven registered tools verified in production after the current deployment
 - [x] Human-visible write action verified in production
 - [x] Open-source `LICENSE` file present and detected as MIT
 - [ ] GitHub repository visibility changed from private to public

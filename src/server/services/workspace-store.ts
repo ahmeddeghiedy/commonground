@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { workspaceSchemaStatements } from "../../../db/schema";
 import { buildWorkspaceState, detectConflicts, generateScenarios } from "../../features/consensus/scoring";
 import type { Activity, Traveler, WorkspaceState } from "../../features/consensus/types";
-import type { CollaborativeWorkspace, PersistedWorkspaceState, WorkspaceInvite, WorkspaceRole } from "../../features/collaboration/types";
+import type { CollaborativeWorkspace, PersistedWorkspaceState, WorkspaceInvite, WorkspaceInviteStatus, WorkspaceRole } from "../../features/collaboration/types";
 import { MAX_TRAVELERS } from "../../features/collaboration/types";
 
 interface WorkspaceRow {
@@ -18,6 +18,15 @@ interface WorkspaceRow {
 interface MemberRow {
   traveler_id: string;
   token_hash: string;
+}
+
+interface InviteStatusRow {
+  traveler_id: string;
+  name: string;
+  email: string | null;
+  status: "invited" | "active";
+  created_at: string;
+  updated_at: string;
 }
 
 function database(): D1Database {
@@ -205,10 +214,8 @@ export async function createInvite(id: string, token: string, input: { name: str
   };
   const travelers = [...state.travelers, traveler];
   const now = new Date().toISOString();
-  const activity: Activity[] = [
-    { id: `act-${crypto.randomUUID()}`, actorId: "owner", kind: "join", detail: `${traveler.name} was invited`, at: now },
-    ...state.activity,
-  ].slice(0, 30);
+  const inviteActivity: Activity = { id: `act-${crypto.randomUUID()}`, actorId: "owner", kind: "join", detail: `${traveler.name} was invited`, at: now };
+  const activity: Activity[] = [inviteActivity, ...state.activity].slice(0, 30);
   await database().batch([
     database().prepare(
       "INSERT INTO workspace_members (id, workspace_id, traveler_id, name, email, token_hash, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'traveler', 'invited', ?, ?)"
@@ -217,4 +224,49 @@ export async function createInvite(id: string, token: string, input: { name: str
       .bind(JSON.stringify({ travelers, activity, travelerLimit: limit, checkIn: state.checkIn }), now, id),
   ]);
   return { travelerId: traveler.id, travelerName: traveler.name, inviteToken };
+}
+
+export async function listInvites(id: string, token: string): Promise<WorkspaceInviteStatus[]> {
+  const row = await workspaceRow(id);
+  const access = await authorize(row, token);
+  if (access.role !== "owner") throw new Error("OWNER_REQUIRED");
+  const result = await database().prepare(
+    "SELECT traveler_id, name, email, status, created_at, updated_at FROM workspace_members WHERE workspace_id = ? ORDER BY created_at ASC"
+  ).bind(id).all<InviteStatusRow>();
+  return (result.results ?? []).map((member) => ({
+    travelerId: member.traveler_id,
+    travelerName: member.name,
+    email: member.email,
+    status: member.status,
+    createdAt: member.created_at,
+    updatedAt: member.updated_at,
+  }));
+}
+
+export async function revokeInvite(id: string, token: string, travelerId: string) {
+  const row = await workspaceRow(id);
+  const access = await authorize(row, token);
+  if (access.role !== "owner") throw new Error("OWNER_REQUIRED");
+  const member = await database().prepare(
+    "SELECT traveler_id, token_hash FROM workspace_members WHERE workspace_id = ? AND traveler_id = ? LIMIT 1"
+  ).bind(id, travelerId).first<MemberRow>();
+  if (!member) throw new Error("TRAVELER_NOT_FOUND");
+  const state = hydrateState(row);
+  const traveler = state.travelers.find((item) => item.id === travelerId);
+  const travelers = state.travelers.filter((item) => item.id !== travelerId);
+  const now = new Date().toISOString();
+  const revokeActivity: Activity = {
+    id: `act-${crypto.randomUUID()}`,
+    actorId: "owner",
+    kind: "join",
+    detail: `${traveler?.name ?? "Traveler"} was removed and their private link was revoked`,
+    at: now,
+  };
+  const activity: Activity[] = [revokeActivity, ...state.activity].slice(0, 30);
+  await database().batch([
+    database().prepare("DELETE FROM workspace_members WHERE workspace_id = ? AND traveler_id = ?").bind(id, travelerId),
+    database().prepare("UPDATE workspaces SET state_json = ?, version = version + 1, updated_at = ? WHERE id = ?")
+      .bind(JSON.stringify({ travelers, activity, travelerLimit: travelerLimit(row), checkIn: state.checkIn }), now, id),
+  ]);
+  return { success: true, travelerId, version: row.version + 1 };
 }

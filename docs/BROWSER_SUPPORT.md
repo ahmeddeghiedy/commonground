@@ -21,7 +21,7 @@ WebMCP is intentionally a progressive enhancement. An unsupported browser never 
 4. Reload CommonGround and use an eligible account and model.
 5. Approve the website-access prompt when the agent requests it.
 6. Confirm the address-bar arrow is present. It turns blue while tools are being used.
-7. Confirm the CommonGround header says **WebMCP · 17 tools**.
+7. Confirm the CommonGround header says **WebMCP · 27 tools**.
 
 Official instructions: <https://help.openai.com/en/articles/20001423-using-site-tools-in-the-chatgpt-desktop-app>
 
@@ -32,7 +32,7 @@ Official instructions: <https://help.openai.com/en/articles/20001423-using-site-
 3. Set **WebMCP testing** to **Enabled**.
 4. Relaunch Chrome completely.
 5. Open the deployed CommonGround URL in a top-level tab.
-6. Confirm the header says **WebMCP · 17 tools**.
+6. Confirm the header says **WebMCP · 27 tools**.
 7. Use the WebMCP Model Context Tool Inspector extension or another WebMCP-aware agent to inspect and invoke the tools.
 
 Official Chrome documentation: <https://developer.chrome.com/docs/ai/webmcp>
@@ -59,5 +59,5 @@ Both browsers can use the complete CommonGround UI. At the time of writing, neit
 - **Badge says “WebMCP ready · connect browser”**: click it for the browser-specific support center.
 - **Chrome flag is enabled but the badge does not change**: relaunch every Chrome window, verify the page is top-level, and confirm Chrome is current.
 - **ChatGPT desktop arrow is missing**: verify Site Tools permission, account/model eligibility, and reload the tab.
-- **Exactly 17 tools are not shown**: run `pnpm verify:webmcp` or the project’s Chrome verifier before presenting.
+- **Exactly 27 tools are not shown**: run `pnpm verify:webmcp` or the project’s Chrome verifier before presenting.
 - **The app works but tools are absent**: this is expected in a browser without `document.modelContext`; it is not an application outage.

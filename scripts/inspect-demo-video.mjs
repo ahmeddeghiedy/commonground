@@ -3,7 +3,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { tmpdir } from "node:os";
 import { createServer } from "node:net";
@@ -72,8 +72,9 @@ async function main() {
     const socket = new WebSocket(target.webSocketDebuggerUrl);
     await new Promise((done, reject) => { socket.addEventListener("open", done, { once: true }); socket.addEventListener("error", reject, { once: true }); });
     client = new Cdp(socket); await client.send("Runtime.enable"); await client.send("Page.enable");
-    const inspector = pathToFileURL(resolve(dirname(VIDEO), "video-inspector.html")).href;
-    await client.send("Page.navigate", { url: inspector });
+    const inspector = pathToFileURL(resolve(dirname(VIDEO), "video-inspector.html"));
+    inspector.searchParams.set("src", basename(VIDEO));
+    await client.send("Page.navigate", { url: inspector.href });
     const duration = await waitFor(() => evaluate(client, `document.querySelector('video')?.duration || 0`));
     const requestedTimes = process.env.DEMO_INSPECT_TIMES?.split(",").map(Number).filter(Number.isFinite);
     const times = requestedTimes?.length ? requestedTimes : [5, 55, 95, Math.min(124, Math.max(0, duration - 2))];

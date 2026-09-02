@@ -241,7 +241,7 @@ async function main() {
     await client.send("Runtime.enable");
     await client.send("Page.enable");
     await sleep(5_000);
-    await waitFor(() => evaluate(client, `document.modelContext?.getTools?.().then(tools=>tools.length===17)`), "17 WebMCP tools", 30_000);
+    await waitFor(() => evaluate(client, `document.modelContext?.getTools?.().then(tools=>tools.length===27)`), "27 WebMCP tools", 30_000);
     await evaluate(client, overlayScript);
     if (PROOF_ONLY) await evaluate(client, proofOverlayScript);
     await evaluate(client, `document.querySelector(".cg-col-board")?.scrollIntoView({block:"start"})`);

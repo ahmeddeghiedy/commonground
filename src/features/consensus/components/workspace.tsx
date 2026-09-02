@@ -21,7 +21,7 @@ import { DemoGuide } from "./demo-guide";
 import { CreateWorkspaceDialog } from "@/features/collaboration/create-workspace-dialog";
 import { InviteTravelerDialog } from "@/features/collaboration/invite-traveler-dialog";
 import { PriorityWizard } from "@/features/collaboration/priority-wizard";
-import type { CollaborativeWorkspace, WorkspaceRole } from "@/features/collaboration/types";
+import type { CollaborativeWorkspace, WorkspaceInvite, WorkspaceInviteStatus, WorkspaceRole } from "@/features/collaboration/types";
 import { WorkspaceSettingsDialog } from "@/features/collaboration/workspace-settings-dialog";
 import { WebMCPReadinessDialog } from "@/features/webmcp/webmcp-readiness-dialog";
 import { InventorySourceDialog, type InventorySourceInfo } from "@/features/inventory/inventory-source-dialog";
@@ -195,6 +195,45 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     notify("Trip setup updated — review the guided next steps");
   }, [notify, openOnboarding]);
 
+  const createWorkspaceFromAgent = useCallback(async (input: { name: string; destination: string; checkIn: string; nights: number; organizerName: string; travelerLimit: number }) => {
+    const response = await fetch("/api/workspaces", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
+    const payload = await response.json() as { workspace?: { id: string }; ownerToken?: string; error?: string };
+    if (!response.ok || !payload.workspace?.id || !payload.ownerToken) throw new Error(payload.error ?? "Workspace creation failed");
+    try { localStorage.setItem(`commonground:access:${payload.workspace.id}`, payload.ownerToken); } catch { /* navigation carries token */ }
+    const workspacePath = `/w/${payload.workspace.id}?invite=${encodeURIComponent(payload.ownerToken)}&onboarding=1`;
+    notify("Workspace created by the agent — opening the guided setup");
+    setTimeout(() => window.location.assign(workspacePath), 900);
+    return { workspaceId: payload.workspace.id, workspacePath };
+  }, [notify]);
+
+  const listInvitationsFromAgent = useCallback(async (): Promise<WorkspaceInviteStatus[]> => {
+    if (!workspaceId || !accessToken) throw new Error("No private workspace is open");
+    const response = await fetch(`/api/workspaces/${workspaceId}/invites`, { headers: { authorization: `Bearer ${accessToken}` }, cache: "no-store" });
+    const payload = await response.json() as { invitations?: WorkspaceInviteStatus[]; error?: string };
+    if (!response.ok) throw new Error(payload.error ?? "Could not list invitations");
+    return payload.invitations ?? [];
+  }, [accessToken, workspaceId]);
+
+  const createInvitationFromAgent = useCallback(async (input: { name: string; email?: string }) => {
+    if (!workspaceId || !accessToken) throw new Error("No private workspace is open");
+    const response = await fetch(`/api/workspaces/${workspaceId}/invites`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` }, body: JSON.stringify(input) });
+    const payload = await response.json() as WorkspaceInvite & { error?: string };
+    if (!response.ok || !payload.inviteToken) throw new Error(payload.error ?? "Could not create invitation");
+    await refreshWorkspace();
+    const inviteUrl = `${window.location.origin}/w/${workspaceId}?invite=${encodeURIComponent(payload.inviteToken)}`;
+    notify(`Private invitation created for ${payload.travelerName} — review before sharing`);
+    return { travelerId: payload.travelerId, travelerName: payload.travelerName, inviteUrl, shared: false };
+  }, [accessToken, notify, refreshWorkspace, workspaceId]);
+
+  const revokeInvitationFromAgent = useCallback(async (travelerId: string) => {
+    if (!workspaceId || !accessToken) throw new Error("No private workspace is open");
+    const response = await fetch(`/api/workspaces/${workspaceId}/invites`, { method: "DELETE", headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ travelerId }) });
+    const payload = await response.json() as { error?: string };
+    if (!response.ok) throw new Error(payload.error ?? "Could not revoke invitation");
+    await refreshWorkspace();
+    notify("Traveler removed and private invitation revoked");
+  }, [accessToken, notify, refreshWorkspace, workspaceId]);
+
   const webmcp = useCommonGroundWebMCP({
     state,
     setState,
@@ -219,6 +258,11 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     openWorkspaceSettings: () => setShowWorkspaceSettings(true),
     openWorkspaceOnboarding: openOnboarding,
     configureWorkspace: configureWorkspaceFromAgent,
+    createWorkspace: createWorkspaceFromAgent,
+    listInvitations: listInvitationsFromAgent,
+    createInvitation: createInvitationFromAgent,
+    revokeInvitation: revokeInvitationFromAgent,
+    setWorkspaceCapacity: setTravelerLimit,
   });
 
   // Inventory load
@@ -487,11 +531,11 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
             <div className="cg-command-head">
               <div><Bot size={18} /><span>Agent control surface</span></div>
               <span className={`cg-status-pill ${webmcp.supported ? "is-ready" : "is-off"}`}>
-                {webmcp.supported ? "Native & connected" : "17 tools ready"}
+                {webmcp.supported ? "Native & connected" : "27 tools ready"}
               </span>
             </div>
             <div className="cg-command-metrics">
-              <div><strong>{webmcp.supported ? webmcp.registeredCount : 17}</strong><span>strict tools</span></div>
+              <div><strong>{webmcp.supported ? webmcp.registeredCount : 27}</strong><span>strict tools</span></div>
               <div><strong>100%</strong><span>visible writes</span></div>
               <div><strong>0</strong><span>autonomous purchases</span></div>
             </div>
@@ -608,7 +652,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
       {showWorkspaceSettings && workspaceId && role === "owner" && (
         <WorkspaceSettingsDialog travelerLimit={travelerLimit} currentCount={state.travelers.length} onClose={() => setShowWorkspaceSettings(false)} onSave={setTravelerLimit} />
       )}
-      {showWebMCPReadiness && <WebMCPReadinessDialog supported={webmcp.supported} toolCount={webmcp.registeredCount || 17} onClose={() => setShowWebMCPReadiness(false)} />}
+      {showWebMCPReadiness && <WebMCPReadinessDialog supported={webmcp.supported} toolCount={webmcp.registeredCount || 27} onClose={() => setShowWebMCPReadiness(false)} />}
       {showInventorySource && <InventorySourceDialog info={inventoryInfo} onClose={() => setShowInventorySource(false)} onRefresh={() => { setStatus("loading"); setInventoryRefresh((value) => value + 1); }} />}
       {showOnboarding && workspaceId && role === "owner" && currentTravelerId && (
         <WorkspaceOnboardingWizard

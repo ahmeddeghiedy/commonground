@@ -18,7 +18,7 @@ Target runtime: 2:20–2:35. Hard ceiling: 2:50.
 
 **Voice:**
 
-> CommonGround exposes seventeen typed browser tools. The agent does not scrape the page or guess where to click. It receives structured travelers, must-haves, preferences, budgets, hotel inventory, and the current scenario. It searches the normalized inventory and asks CommonGround to explain the group’s actual trade-offs.
+> CommonGround exposes twenty-seven typed browser tools. The agent does not scrape the page or guess where to click. It receives structured travelers, must-haves, preferences, budgets, hotel inventory, invitations, and the current scenario. It searches the normalized inventory and asks CommonGround to explain the group’s actual trade-offs.
 
 ### 0:45–1:12 — Human-visible action
 
@@ -46,7 +46,7 @@ Target runtime: 2:20–2:35. Hard ceiling: 2:50.
 
 ### 2:03–2:28 — Architecture and impact
 
-**Picture:** Return to the ranked decision board. Show “WebMCP on,” the live-data source control, and compact on-screen labels: “17 tools,” “visible writes,” “human approval,” “provider adapter.”
+**Picture:** Return to the ranked decision board. Show “WebMCP on,” the live-data source control, and compact on-screen labels: “27 tools,” “visible writes,” “human approval,” “provider adapter.”
 
 **Voice:**
 
@@ -68,4 +68,3 @@ Target runtime: 2:20–2:35. Hard ceiling: 2:50.
 - Keep cursor movement deliberate and cut every wait state.
 - Export 1920×1080 H.264 with AAC audio.
 - Final runtime must remain below 2:50 to leave a safe margin under the three-minute judging limit.
-

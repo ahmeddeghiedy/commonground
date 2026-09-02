@@ -9,7 +9,7 @@ CommonGround is a multi-traveler hotel decision workspace where an AI agent and 
 ### Judge quick path
 
 1. Open the live application in ChatGPT’s in-app browser or Chrome with WebMCP enabled.
-2. Confirm the header reports `WebMCP · 17 tools`.
+2. Confirm the header reports `WebMCP · 27 tools`.
 3. Ask: “Inspect this group’s hotel constraints, explain the biggest conflict, switch to Balanced Compromise, and prepare a booking draft. Do not purchase anything.”
 4. Watch the shared scenario change visibly and review the human-confirmation booking draft.
 
@@ -51,16 +51,26 @@ Optional live inventory: choose `wadjet` or `custom` through the provider adapte
 | `search_hotel_inventory` | read | Calls `/api/inventory`, returns normalized hotels (supports price/score filters). |
 | `compare_scenarios` | read | Side-by-side scenario comparison with per-traveler scores. |
 | `explain_conflicts` | read | Conflicts with severity, resolutions, locked constraints. |
+| `get_onboarding_status` | read | Setup progress, capacity, incomplete profiles, and selections. |
 | `open_workspace_setup` | write | Opens the human-controlled trip creation form; never submits it. |
+| `create_workspace` | write | Creates a confirmed private workspace and opens its guided setup. |
 | `open_invite_traveler` | write | Opens the organizer-only invite form; never shares a link automatically. |
+| `list_invitations` | read | Organizer-only invitation and activation status without private tokens. |
+| `create_invitation` | write | Creates a private scoped link for manual human sharing. |
+| `revoke_invitation` | write | Revokes a private link and removes that traveler after confirmation. |
 | `open_workspace_settings` | write | Opens organizer-only traveler-capacity settings. |
 | `open_workspace_onboarding` | write | Opens the visible organizer guide at invite, priorities, compare, or agent setup. |
 | `configure_trip_workspace` | write | Organizer-confirmed destination, nights, and capacity update; opens the guide. |
+| `set_workspace_capacity` | write | Sets organizer-controlled capacity from 2–30 seats. |
+| `update_traveler_profile` | write | Updates an authorized traveler name or budget. |
+| `add_constraint` | write | Adds an authorized traveler decision rule. |
+| `remove_constraint` | write | Removes an unlocked rule after explicit confirmation. |
 | `set_constraint_priority` | write | Change a constraint's priority; recalculates; logs activity. |
 | `lock_constraint` | write | Lock/unlock a constraint so its priority cannot change silently. |
 | `veto_hotel` | write | Remove/restore a hotel across scenarios. |
 | `create_scenarios` | write | Regenerate scenarios from current state. |
 | `select_scenario` | write | Switch the visible board. |
+| `select_hotel` | write | Selects or clears a non-vetoed hotel on the visible board. |
 | `prepare_booking_draft` | write | Opens human confirmation UI only; reports `purchaseOccurred: false`. |
 
 ## Testing with an agent
@@ -80,7 +90,7 @@ corepack pnpm start
 corepack pnpm verify:webmcp
 ```
 
-The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 17 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
+The verifier launches an isolated Chrome profile with the WebMCP feature enabled, confirms all 27 registered names, executes `get_workspace_state`, visibly switches to the compromise scenario, and restores consensus. It supports both the current object-argument API and Chrome builds that still expose the earlier JSON-string testing convention.
 
 For a public URL, enroll the deployed origin in Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`. The app emits it as an origin-trial meta tag. Local development does not need a token when the testing flag is enabled.
 

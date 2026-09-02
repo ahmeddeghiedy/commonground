@@ -1,6 +1,6 @@
 # Demo Script (< 3 minutes)
 
-**Setup**: Chrome with `chrome://flags/#enable-webmcp-testing` enabled (or ChatGPT desktop Site Tools), app open, side panel agent attached. Badge reads **"WebMCP · 17 tools"**.
+**Setup**: Chrome with `chrome://flags/#enable-webmcp-testing` enabled (or ChatGPT desktop Site Tools), app open, side panel agent attached. Badge reads **"WebMCP · 27 tools"**.
 
 1. **(20s) Hook.** "A group of travelers, one Lisbon trip, and an AI that can actually *see and touch* the same board they do — that's WebMCP." Point at People & Priorities: Maya's locked step-free access, Diego's budget cap, and Sana's family-room requirement.
 

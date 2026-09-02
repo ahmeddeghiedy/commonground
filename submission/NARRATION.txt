@@ -1,6 +1,6 @@
 Four friends want one hotel, but their needs conflict. One needs step-free access. Another cares about the beach. Everyone has a different budget. I can ask an agent to find the fairest option, and it starts by reading the group's real, current workspace through Web M C P.
 
-CommonGround exposes seventeen typed browser tools. The agent does not scrape the page or guess where to click. It receives structured travelers, must-haves, preferences, budgets, hotel inventory, and the current scenario. It searches the normalized inventory and asks CommonGround to explain the group's actual trade-offs.
+CommonGround exposes twenty-seven typed browser tools. The agent does not scrape the page or guess where to click. It receives structured travelers, must-haves, preferences, budgets, hotel inventory, invitations, and the current scenario. It searches the normalized inventory and asks CommonGround to explain the group's actual trade-offs.
 
 The strongest conflict is clear: the beachfront favorite stretches the budget, while the accessible city option sacrifices the beach. With approval, the agent switches to Balanced Compromise. That is a real Web M C P write action. The visible interface changes immediately, the ranking is recalculated, and the action is logged for the group.
 
@@ -11,4 +11,3 @@ This is also a complete group product, not a single demo screen. An organizer cr
 Demo inventory can be replaced by TravelWithWadjet, Booking.com Demand, Expedia Rapid, or another licensed provider through one server-side adapter. Web M C P is the right fit because the agent and the humans share the same live state and the same visible interface. CommonGround turns a messy group chat into an explainable decision everyone can inspect, influence, and trust.
 
 CommonGround: group travel decisions that agents can help with, without taking control away from people.
-

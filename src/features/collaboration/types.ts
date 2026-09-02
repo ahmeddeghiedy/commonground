@@ -27,3 +27,12 @@ export interface WorkspaceInvite {
   travelerName: string;
   inviteToken: string;
 }
+
+export interface WorkspaceInviteStatus {
+  travelerId: string;
+  travelerName: string;
+  email: string | null;
+  status: "invited" | "active";
+  createdAt: string;
+  updatedAt: string;
+}

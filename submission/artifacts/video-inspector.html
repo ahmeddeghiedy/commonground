@@ -8,10 +8,12 @@
     </style>
   </head>
   <body>
-    <video id="source" muted preload="auto" src="commonground-demo-silent.mp4"></video>
+    <video id="source" muted preload="auto"></video>
     <script>
       const video = document.getElementById("source");
-      const requested = Number(new URLSearchParams(location.search).get("t") || 0);
+      const params = new URLSearchParams(location.search);
+      const requested = Number(params.get("t") || 0);
+      video.src = params.get("src") || "commonground-demo-silent.mp4";
       video.addEventListener("loadedmetadata", () => { document.title = `duration:${video.duration}`; video.currentTime = requested; });
       video.addEventListener("seeked", () => document.body.dataset.ready = "true");
     </script>

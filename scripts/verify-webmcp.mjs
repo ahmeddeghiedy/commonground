@@ -16,16 +16,26 @@ const EXPECTED_TOOLS = [
   "search_hotel_inventory",
   "compare_scenarios",
   "explain_conflicts",
+  "get_onboarding_status",
   "open_workspace_setup",
+  "create_workspace",
   "open_invite_traveler",
+  "list_invitations",
+  "create_invitation",
+  "revoke_invitation",
   "open_workspace_settings",
   "open_workspace_onboarding",
   "configure_trip_workspace",
+  "set_workspace_capacity",
+  "update_traveler_profile",
+  "add_constraint",
+  "remove_constraint",
   "set_constraint_priority",
   "lock_constraint",
   "veto_hotel",
   "create_scenarios",
   "select_scenario",
+  "select_hotel",
   "prepare_booking_draft",
 ];
 
@@ -285,10 +295,25 @@ async function main() {
           }
         };
         const workspaceTool = byName("get_workspace_state");
+        const onboardingTool = byName("get_onboarding_status");
         const scenarioTool = byName("select_scenario");
-        if (!workspaceTool || !scenarioTool) throw new Error("required smoke-test tools were not registered");
+        const hotelTool = byName("select_hotel");
+        if (!workspaceTool || !onboardingTool || !scenarioTool || !hotelTool) throw new Error("required smoke-test tools were not registered");
 
         const workspaceCall = await callTool(workspaceTool, {});
+        const onboardingCall = await callTool(onboardingTool, {});
+        const originalHotelId = workspaceCall.result?.selectedHotelId ?? "none";
+        const visibleHotelCard = [...document.querySelectorAll("article[aria-label]")]
+          .find((article) => [...article.querySelectorAll("button")].some((button) => /^select$/i.test(button.textContent?.trim() || "")));
+        const visibleHotelLabel = visibleHotelCard?.getAttribute("aria-label") || "";
+        const candidateHotelId = workspaceCall.result?.hotels?.find((hotel) => visibleHotelLabel.startsWith(hotel.name + ","))?.id;
+        if (!candidateHotelId) throw new Error("No selectable hotel was returned by get_workspace_state");
+        const selectedHotelCall = await callTool(hotelTool, { hotelId: candidateHotelId });
+        await wait(500);
+        const selectedHotelStateCall = await callTool(workspaceTool, {});
+        const selectedHotelVisible = [...document.querySelectorAll("article")]
+          .some((article) => article.querySelector('button[aria-pressed="true"]')?.textContent?.toLowerCase().includes("selected"));
+        const restoredHotelCall = await callTool(hotelTool, { hotelId: originalHotelId });
         const changedCall = await callTool(scenarioTool, { scenarioId: "compromise" });
         await wait(100);
         const compromiseVisible = [...document.querySelectorAll("button")]
@@ -302,6 +327,11 @@ async function main() {
           url: location.href,
           toolNames: tools.map((tool) => tool.name),
           workspace: workspaceCall.result,
+          onboarding: onboardingCall.result,
+          selectedHotel: selectedHotelCall.result,
+          selectedHotelState: selectedHotelStateCall.result,
+          restoredHotel: restoredHotelCall.result,
+          selectedHotelVisible,
           changed: changedCall.result,
           restored: restoredCall.result,
           argumentMode: changedCall.argumentMode,
@@ -319,6 +349,9 @@ async function main() {
       throw new Error(`Tool mismatch: ${JSON.stringify({ missing, extra, actual })}`);
     }
     if (!result.workspace?.success) throw new Error("get_workspace_state did not return success");
+    if (!result.onboarding?.success) throw new Error("get_onboarding_status did not return success");
+    if (!result.selectedHotel?.success || result.selectedHotelState?.selectedHotelId !== result.selectedHotel.changed?.selectedHotelId || !result.selectedHotelVisible) throw new Error(`hotel selection was not visible in both state and UI: ${JSON.stringify({ selectedHotel: result.selectedHotel, stateId: result.selectedHotelState?.selectedHotelId, ui: result.selectedHotelVisible })}`);
+    if (!result.restoredHotel?.success) throw new Error("hotel selection was not restored");
     if (!result.changed?.success || !result.compromiseVisible) throw new Error("compromise selection was not visible");
     if (!result.restored?.success || !result.consensusVisible) throw new Error("consensus restoration was not visible");
 
@@ -337,7 +370,8 @@ async function main() {
       toolCount: actual.length,
       tools: actual,
       readTool: "get_workspace_state",
-      reversibleWrite: "select_scenario: compromise -> consensus",
+      onboardingRead: "get_onboarding_status",
+      reversibleWrites: ["select_hotel: candidate -> original", "select_scenario: compromise -> consensus"],
       visibleStateVerified: true,
       executeToolArgumentMode: result.argumentMode,
       ...(SCREENSHOT_PATH ? { screenshotPath: SCREENSHOT_PATH } : {}),

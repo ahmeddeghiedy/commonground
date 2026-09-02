@@ -72,7 +72,7 @@ export function WorkspaceOnboardingWizard({
           <div className="cg-wizard-icon"><Bot size={20} /></div>
           <h2 id="onboarding-title">Let your agent guide the setup.</h2>
           <p>{webmcpReady ? "WebMCP is connected. Your agent can inspect the workspace, open this guide, configure trip settings, explain conflicts, change approved priorities, and compare scenarios." : "Connect Site Tools or Chrome WebMCP, then give the agent the setup prompt. Every change remains visible and permission-aware."}</p>
-          <div className={`cg-readiness ${webmcpReady ? "is-ready" : "is-warning"}`}><Bot size={18} /><div><strong>{webmcpReady ? "Agent tools connected" : "Agent tools ready to connect"}</strong><span>The agent cannot invite people silently or purchase travel; humans retain those approval steps.</span></div></div>
+          <div className={`cg-readiness ${webmcpReady ? "is-ready" : "is-warning"}`}><Bot size={18} /><div><strong>{webmcpReady ? "Agent tools connected" : "Agent tools ready to connect"}</strong><span>After organizer confirmation, the agent can create a scoped invite link. It never sends messages or purchases travel.</span></div></div>
           <button type="button" className="cg-btn cg-btn--primary cg-btn--wide" onClick={onCopyAgentPrompt}><Bot size={15} /> Copy “set up my workspace” prompt</button>
         </div>}
 

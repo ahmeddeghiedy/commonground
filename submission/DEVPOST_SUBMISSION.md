@@ -14,7 +14,7 @@ Planning a group trip usually means collecting preferences in a chat, losing imp
 
 ### Why this is a strong fit for WebMCP
 
-Group travel decisions are stateful, collaborative, and full of permission boundaries. An agent needs more than page text: it needs structured access to the current travelers, constraints, inventory, conflicts, scenarios, and booking state. CommonGround exposes those capabilities directly from the live web application as seventeen typed WebMCP tools. The website remains the shared source of truth for both people and agents.
+Group travel decisions are stateful, collaborative, and full of permission boundaries. An agent needs more than page text: it needs structured access to the current travelers, invitations, constraints, inventory, conflicts, scenarios, and booking state. CommonGround exposes those capabilities directly from the live web application as twenty-seven typed WebMCP tools. The website remains the shared source of truth for both people and agents.
 
 ### How it creates a better experience
 
@@ -26,7 +26,7 @@ A group can ask, “Find the fairest option that protects accessibility and keep
 
 ### How WebMCP is implemented
 
-CommonGround feature-detects `document.modelContext` and registers seventeen tools with explicit names, descriptions, JSON input schemas, annotations, and execution handlers. Read tools expose collaboration status, workspace state, traveler constraints, hotel inventory, scenario comparisons, and conflict explanations. Write tools open visible setup surfaces, configure an organizer’s workspace, change approved priorities, lock constraints, add vetoes, generate scenarios, select a scenario, and prepare a booking draft. Tool handlers reuse the same application state and scoring functions as the human interface. There is no hidden purchase path.
+CommonGround feature-detects `document.modelContext` and registers twenty-seven tools with explicit names, descriptions, JSON input schemas, annotations, and execution handlers. Read tools expose onboarding status, collaboration status, workspace state, invitation status, traveler constraints, hotel inventory, scenario comparisons, and conflict explanations. Permission-aware write tools create a workspace, create or revoke scoped invitation links, configure capacity and trip settings, update an authorized traveler profile, manage priorities, generate scenarios, select a hotel, and prepare a booking draft. Tool handlers reuse the same application state and scoring functions as the human interface. Links are returned for a human to share, and there is no hidden purchase path.
 
 ### Product and data architecture
 
@@ -53,4 +53,3 @@ No login or test credentials are required for the public demo.
 - Live application: https://commonground-travel.a-deghiedy.chatgpt.site/
 - Source repository: https://github.com/vteamtech/commonground
 - Video: TO BE ADDED AFTER PUBLIC YOUTUBE UPLOAD
-

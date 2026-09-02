@@ -10,6 +10,28 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
 
 const { d1, r2 } = hostingConfig;
 
+function singleFlightSitesPlugin() {
+  const plugin = sites();
+  const originalCloseBundle = plugin.closeBundle;
+  let packaging: Promise<unknown> | undefined;
+
+  // vinext builds several Vite environments. On Windows, their closeBundle
+  // hooks can race while replacing dist/.openai, producing an EBUSY failure.
+  // Run the Sites packaging step once and share that promise across environments.
+  plugin.closeBundle = async function closeBundle() {
+    if (!packaging) {
+      packaging = Promise.resolve(
+        typeof originalCloseBundle === "function"
+          ? originalCloseBundle.call(this)
+          : originalCloseBundle?.handler.call(this),
+      );
+    }
+    await packaging;
+  };
+
+  return plugin;
+}
+
 const localBindingConfig = {
   main: "vinext/server/fetch-handler",
   compatibility_flags: ["nodejs_compat"],
@@ -31,7 +53,7 @@ export default defineConfig({
   css: { postcss: { plugins: [tailwindcss()] } },
   plugins: [
     vinext(),
-    sites(),
+    singleFlightSitesPlugin(),
     cloudflare({
       viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
       config: localBindingConfig,

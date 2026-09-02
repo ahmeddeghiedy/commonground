@@ -10,8 +10,9 @@ This directory contains the materials needed to complete the WebMCP Challenge su
 - `AGENT_CAPTURE_RUNBOOK.md` — exact prompt and acceptance gate for the genuine external Site Tools clip.
 - `NARRATION.txt` — source narration used for the male voice track.
 - `SUBMISSION_CHECKLIST.md` — official requirements and final quality gates.
-- `artifacts/commonground-male-narration.mp3` — generated male neural narration.
-- `artifacts/commonground-male-narration.vtt` — subtitle timing source.
+- `artifacts/commonground-male-narration-v2.mp3` — final 2:06 warm male neural narration, updated for 27 tools.
+- `artifacts/commonground-male-narration-v2.vtt` — synchronized captions for the replacement narration.
+- `artifacts/commonground-male-narration.mp3` and `.vtt` — superseded 17-tool narration retained only for fallback history.
 - `artifacts/video-inspector.html` — local frame-inspection helper used by the quality-control script.
 - `artifacts/commonground-final-demo-agent.mp4` — previous Adobe-rendered 1080p cut, retained as a fallback while the external ChatGPT/Codex Site Tools replacement is produced (local only; excluded from Git).
 - `artifacts/webmcp-production-27-tools.png` — production verification frame showing the deployed 27-tool status.

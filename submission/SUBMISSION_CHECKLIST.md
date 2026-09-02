@@ -9,7 +9,7 @@
 - [x] Human-visible write action verified in production
 - [x] Open-source `LICENSE` file present and detected as MIT
 - [ ] GitHub repository visibility changed from private to public
-- [x] Final video rendered under three minutes (2:15.63, Adobe render verified)
+- [x] Agent-enhanced final video rendered under three minutes (approximately 2:15, Adobe render verified)
 - [ ] Final video watched end-to-end with sound
 - [ ] Final video uploaded publicly to YouTube
 - [ ] YouTube URL added to README and Devpost

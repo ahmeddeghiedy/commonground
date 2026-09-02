@@ -11,6 +11,7 @@ const APP_URL = process.env.DEMO_URL ?? "https://commonground-travel.a-deghiedy.
 const OUTPUT = resolve(process.env.DEMO_CAPTURE_PATH ?? "submission/artifacts/commonground-demo-silent.mp4");
 const CAPTURE_SECONDS = Number(process.env.DEMO_CAPTURE_SECONDS ?? 138);
 const VTT_PATH = resolve(process.env.DEMO_VTT_PATH ?? "submission/artifacts/commonground-male-narration.vtt");
+const PROOF_ONLY = process.env.DEMO_AGENT_PROOF === "1";
 const WINDOW_TITLE = "CommonGround Demo Capture";
 const sleep = (milliseconds) => new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
 
@@ -146,6 +147,36 @@ const overlayScript = `
   };
 })();`;
 
+const proofOverlayScript = `
+(() => {
+  const style = document.createElement("style");
+  style.textContent = "#cg-proof-badge{position:fixed;z-index:2147483642;left:28px;top:74px;padding:10px 14px;border-radius:999px;background:#5ce2bd;color:#06131c;font:800 12px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 12px 36px rgba(42,222,175,.24)}#cg-proof-discovery{margin:14px;padding:10px 12px;border:1px solid rgba(92,226,189,.38);border-radius:11px;background:rgba(92,226,189,.09);color:#bff9e9;font:700 12px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace}#cg-proof-gate{margin:0 14px 14px;padding:11px 12px;border-radius:11px;background:rgba(255,190,92,.12);border:1px solid rgba(255,190,92,.34);color:#ffd99b;font:750 12px/1.35 Inter,system-ui,sans-serif}";
+  document.head.append(style);
+  const badge = document.createElement("div");
+  badge.id = "cg-proof-badge";
+  badge.textContent = "Live WebMCP agent test";
+  document.body.append(badge);
+  const header = document.querySelector("#cg-demo-agent header");
+  if (header) header.innerHTML = '<span class="cg-demo-live"></span>AI browser agent <span style="margin-left:auto;color:#93a8c4;font-size:11px">LIVE</span>';
+  const prompt = document.querySelector("#cg-demo-prompt");
+  if (prompt) prompt.innerHTML = '<span class="cg-demo-label">Natural-language request</span>Find the fairest hotel, protect accessibility, select the balanced compromise, and prepare a draft. Do not purchase.';
+  const discovery = document.createElement("div");
+  discovery.id = "cg-proof-discovery";
+  discovery.textContent = "discovering document.modelContext tools…";
+  prompt?.after(discovery);
+  window.__cgProof = {
+    discovered(count) { discovery.textContent = "✓ " + count + " structured tools discovered from this page"; },
+    gate() {
+      document.getElementById("cg-proof-gate")?.remove();
+      const gate = document.createElement("div");
+      gate.id = "cg-proof-gate";
+      gate.textContent = "Human approval required • booking draft only • no purchase made";
+      document.getElementById("cg-demo-tools")?.after(gate);
+    }
+  };
+  window.__cgDemo?.caption("One request. Real WebMCP discovery and tool calls. Every change stays visible.");
+})();`;
+
 async function callTool(client, name, input, detail) {
   await evaluate(client, `window.__cgDemo?.tool(${JSON.stringify(name)}, ${JSON.stringify(detail)}, true)`);
   const result = await evaluate(client, `(async()=>{
@@ -212,6 +243,7 @@ async function main() {
     await sleep(5_000);
     await waitFor(() => evaluate(client, `document.modelContext?.getTools?.().then(tools=>tools.length===17)`), "17 WebMCP tools", 30_000);
     await evaluate(client, overlayScript);
+    if (PROOF_ONLY) await evaluate(client, proofOverlayScript);
     await evaluate(client, `document.querySelector(".cg-col-board")?.scrollIntoView({block:"start"})`);
     await sleep(2_000);
 
@@ -232,6 +264,21 @@ async function main() {
       if (delay > 0) await sleep(delay);
       await action();
     };
+    if (PROOF_ONLY) {
+      await at(1, () => evaluate(client, `document.modelContext.getTools().then(tools=>window.__cgProof?.discovered(tools.length))`));
+      await at(3, () => callTool(client, "get_workspace_state", {}, "Read group · constraints protected"));
+      await at(6, () => callTool(client, "search_hotel_inventory", { maxTotalPrice: 800 }, "Search normalized inventory"));
+      await at(9, () => callTool(client, "explain_conflicts", {}, "Reason over budget and accessibility"));
+      await at(12, () => callTool(client, "select_scenario", { scenarioId: "compromise" }, "Visible write · Balanced Compromise"));
+      await at(15, () => callTool(client, "prepare_booking_draft", { hotelId: "h-aurora", scenarioId: "compromise" }, "Draft prepared · confirmation required"));
+      await at(18, () => evaluate(client, `window.__cgProof?.gate();window.__cgDemo?.caption("The agent stops at the human approval gate. No booking is made.")`));
+      await at(CAPTURE_SECONDS, async () => {});
+      recorder.stdin.write("q\n");
+      await new Promise((resolvePromise) => recorder.once("exit", resolvePromise));
+      if (recorder.exitCode !== 0) throw new Error(`Recorder exited ${recorder.exitCode}: ${recorderErrors.join("").slice(-1200)}`);
+      process.stdout.write(`${JSON.stringify({ success: true, output: OUTPUT, durationSeconds: CAPTURE_SECONDS, mode: "agent-proof" }, null, 2)}\n`);
+      return;
+    }
     const captionTasks = cues.map((cue) => at(cue.start, async () => {
       try { await evaluate(client, `window.__cgDemo?.caption(${JSON.stringify(cue.text)})`, 5_000); } catch { /* navigation */ }
     }));

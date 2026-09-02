@@ -12,6 +12,7 @@ This directory contains the materials needed to complete the WebMCP Challenge su
 - `artifacts/commonground-male-narration.mp3` — generated male neural narration.
 - `artifacts/commonground-male-narration.vtt` — subtitle timing source.
 - `artifacts/video-inspector.html` — local frame-inspection helper used by the quality-control script.
+- `artifacts/commonground-final-demo.mp4` — final Adobe-rendered 1080p demo with narration (local only; excluded from Git).
 
 The raw and final MP4 files stay out of Git because the public YouTube upload is the canonical delivery artifact.
 
@@ -24,7 +25,7 @@ pnpm run capture:demo
 node scripts/inspect-demo-video.mjs
 ```
 
-The capture script launches an isolated Chrome application window with WebMCP enabled. It executes real tools through `document.modelContext.executeTool`, drives the visible scenario and setup interfaces, and records a silent 1600×900 source. The final 1920×1080 edit pairs that source with the narration track and ends before the three-minute limit.
+The capture script launches an isolated Chrome application window with WebMCP enabled. It executes real tools through `document.modelContext.executeTool`, drives the visible scenario and setup interfaces, and records a silent 1600×900 source. The final Adobe render is 1920×1080 at 30 fps, includes the male narration as stereo AAC audio, and runs for 2:15.63.
 
 ## Final handoff
 
@@ -33,4 +34,3 @@ The capture script launches an isolated Chrome application window with WebMCP en
 3. Add the YouTube URL to `README.md`, `DEVPOST_SUBMISSION.md`, and Devpost.
 4. Make the GitHub repository public and verify it in a logged-out browser.
 5. Submit before Thursday, September 3, 2026 at 1:00 PM Pacific Time.
-

@@ -64,6 +64,28 @@ export interface CommonGroundWebMCPStatus {
 const PRIORITIES: Priority[] = ["must", "prefer", "flexible", "exclude"];
 const SCENARIO_IDS: Scenario["id"][] = ["consensus", "value", "compromise"];
 const CONSTRAINT_CATEGORIES: Constraint["category"][] = ["accessibility", "family", "amenity", "location", "budget", "cancellation", "rating"];
+export const WEBMCP_ATTACH_RETRY_DELAYS = [100, 300, 750, 1_500, 3_000, 6_000] as const;
+
+export function scheduleModelContextRetry(
+  readContext: () => WebMCPModelContext | undefined,
+  onAvailable: () => void,
+  schedule: (callback: () => void, delay: number) => number,
+  cancel: (timer: number) => void
+): () => void {
+  let completed = false;
+  const timers = WEBMCP_ATTACH_RETRY_DELAYS.map((delay) => schedule(() => {
+    if (completed) return;
+    const candidate = readContext();
+    if (candidate && typeof candidate.registerTool === "function") {
+      completed = true;
+      onAvailable();
+    }
+  }, delay));
+  return () => {
+    completed = true;
+    timers.forEach(cancel);
+  };
+}
 
 function schema(properties: Record<string, unknown>, required: string[]): WebMCPJsonSchema {
   return { type: "object", properties, required, additionalProperties: false };
@@ -102,6 +124,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
     invocationCount: 0,
     lastInvocation: null,
   });
+  const [modelContextRevision, setModelContextRevision] = useState(0);
   const propsRef = useRef(props);
   propsRef.current = props;
   const activitySeq = useRef(0);
@@ -114,7 +137,15 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
     if (!mc || typeof mc.registerTool !== "function") {
 // Legacy navigator alias would go here; intentionally NOT used (deprecated).
       setStatus({ supported: false, registeredCount: 0, invocationCount: 0, lastInvocation: null });
-      return;
+      // Some WebMCP hosts attach document.modelContext shortly after the page's
+      // React tree mounts. Recheck for a bounded period so a first-time visitor
+      // does not need to reload merely because host injection lost the race.
+      return scheduleModelContextRetry(
+        () => document.modelContext,
+        () => setModelContextRevision((revision) => revision + 1),
+        (callback, delay) => window.setTimeout(callback, delay),
+        (timer) => window.clearTimeout(timer)
+      );
     }
 
     const controller = new AbortController();
@@ -837,7 +868,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [modelContextRevision]);
 
   return status;
 }

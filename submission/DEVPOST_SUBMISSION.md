@@ -40,13 +40,16 @@ WebMCP, React 19, Next.js-compatible routing through vinext, TypeScript, Cloudfl
 
 ## Testing instructions
 
-1. Open the live URL in ChatGPT’s in-app browser or Google Chrome with WebMCP enabled.
-2. Confirm the header shows “WebMCP on.”
-3. Ask the browser agent: “Inspect this group’s hotel constraints, explain the biggest conflict, switch to Balanced Compromise, and prepare a booking draft. Do not purchase anything.”
-4. Confirm that the scenario selection changes visibly and the booking draft opens.
-5. Optionally choose “Create your trip workspace” to test the three-step workspace wizard and the post-creation onboarding guide.
+1. In the ChatGPT desktop app, enable **Browser settings → Permissions → Site Tools**, then open the live URL in the built-in browser. No separate connection or extension is required. Alternatively, use Chrome 149+ with `chrome://flags/#enable-webmcp-testing` and the Model Context Tool Inspector.
+2. Select **Reset workspace**, wait for inventory to load, and confirm the header says **WebMCP · 27 tools**. In ChatGPT desktop, the Site Tools arrow must appear in the address bar; approve the website-access prompt if shown.
+3. Ask the attached browser agent: “Use CommonGround’s Site Tools to inspect the group, list every traveler’s budget and locked must-have, explain the conflicts, search inventory, compare all three scenarios, select the fairest zero-violation option in Balanced Compromise, and prepare a booking draft. Do not approve, book, purchase, message, or charge anything.”
+4. Confirm that the dashboard changes visibly to **Balanced Compromise**, selects **Pensão Lumen**, and opens the **Approve booking draft** dialog for **EUR 380** while stating that no purchase is made.
+5. Confirm the dashboard says **Agent active**, its call counter is nonzero, and **Last Site Tool** reports `prepare booking draft · completed`.
+6. Optionally choose **Create your trip workspace** to test the three-step workspace wizard, capacity up to 30 travelers, invitation links, traveler-scoped permissions, and the post-creation onboarding guide.
 
 No login or test credentials are required for the public demo.
+
+Do not test by opening `chatgpt.com` and CommonGround in two ordinary Chrome tabs: page-level Site Tools are available to ChatGPT only inside the desktop app’s built-in browser. If the Site Tools arrow is absent, the selected ChatGPT account/model does not currently expose Site Tools; use the Chrome testing path above.
 
 ## Links
 

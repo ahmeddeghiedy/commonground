@@ -9,8 +9,17 @@ This is the one replacement clip the final video needs. It must show the recogni
 2. Confirm the green header badge reads **WebMCP · 27 tools** and inventory has finished loading.
 3. Open the Browser **Site Tools** control and approve CommonGround website access if prompted.
    Before recording, invoke `get_workspace_state` once and confirm the dashboard’s **agent calls this session** counter increases.
-4. Keep the conversation on the left and the CommonGround browser on the right. Collapse unrelated panels and hide notifications.
-5. Begin on the populated demo workspace. Do not show sign-in, setup, invitation tokens, or loading states.
+4. Run the warm-up check below **off camera**. Start recording only after it passes. Do not reload the page, reconnect the browser, or open another tab between the warm-up and the recorded prompt.
+5. Keep the conversation on the left and the CommonGround browser on the right. Collapse unrelated panels and hide notifications.
+6. Begin on the populated demo workspace. Do not show sign-in, setup, invitation tokens, loading states, or browser-connection retries.
+
+### Off-camera warm-up check
+
+Paste this into the same agent conversation that will be recorded:
+
+> Use the CommonGround Site Tools already attached to this built-in browser page. Do not reload or open another tab. Call `get_workspace_state` and report only: the discovered Site Tool count, workspace name, destination, and traveler names.
+
+Proceed only when the response reports **27 tools**, **Demo workspace**, **Lisbon, Portugal**, and **Maya, Diego, Sana, and Leo**, and the dashboard says **Agent active** with a nonzero call count. If browser setup resets, recover off camera and repeat this check; that failure belongs to the Codex browser-control session, not to a CommonGround Site Tool invocation.
 
 ## One prompt to paste
 
@@ -27,7 +36,7 @@ Capture 35–50 seconds containing these genuine tool calls or their visible Sit
 5. `select_hotel`
 6. `prepare_booking_draft`
 
-The frame must also show the CommonGround board changing to **Balanced Compromise**, a hotel becoming **Selected**, and the booking-draft drawer stating that no purchase occurred. Keep any approval click visible. Cut network waits, but do not recreate or imitate tool cards.
+The frame must also show the CommonGround board changing to **Balanced Compromise**, a hotel becoming **Selected**, and the booking-draft drawer stating that no purchase occurred. Keep the **Approve draft** button visible but do not click it. Cut network waits, but do not recreate or imitate tool cards.
 
 ## Capture settings
 

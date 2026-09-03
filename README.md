@@ -125,3 +125,7 @@ Production diagnostics are available at [`/api/health`](https://commonground-tra
 - Tool registration uses an `AbortController` registration signal, unregistering all tools on unmount.
 
 MIT © 2026 TrailTrix Explore. See `LICENSE`.
+
+## Contributing and security
+
+Contributions are welcome through pull requests; see [`CONTRIBUTING.md`](CONTRIBUTING.md). Please report vulnerabilities privately through GitHub Security Advisories as described in [`SECURITY.md`](SECURITY.md). Every push and pull request is validated by the repository CI workflow with tests, linting, and a production build.

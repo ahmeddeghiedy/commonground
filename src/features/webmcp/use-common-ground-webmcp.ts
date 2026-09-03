@@ -357,6 +357,13 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
           return ok({
             count: hotels.length,
             provider: !Array.isArray(data) && data && typeof data === "object" ? (data as { provider?: unknown }).provider ?? null : null,
+            searchContext: {
+              destination: current.destination,
+              checkIn: current.checkIn,
+              nights: current.nights,
+              travelers: current.travelers.length,
+            },
+            matchesWorkspace: true,
             hotels,
             nextAction: "Call compare_scenarios to see how these rank for this specific group.",
           });

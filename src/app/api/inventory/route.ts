@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getInventory, inventoryProviderStatus } from "@/server/services/inventory-provider";
+import { SEED_CHECK_IN } from "@/features/consensus/seed";
 
 const QuerySchema = z.object({
   destination: z.string().trim().min(1).max(120).default("Lisbon, Portugal"),
@@ -11,11 +12,12 @@ const QuerySchema = z.object({
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const defaultCheckIn = new Date();
-  defaultCheckIn.setUTCDate(defaultCheckIn.getUTCDate() + 60);
   const parsed = QuerySchema.safeParse({
     destination: url.searchParams.get("destination") ?? undefined,
-    checkIn: url.searchParams.get("checkIn") ?? defaultCheckIn.toISOString().slice(0, 10),
+    // A parameterless request is the public demo inventory endpoint, so its
+    // context must match the deterministic demo workspace instead of silently
+    // drifting with the current date. Real workspaces always pass checkIn.
+    checkIn: url.searchParams.get("checkIn") ?? SEED_CHECK_IN,
     nights: url.searchParams.get("nights") ?? undefined,
     travelers: url.searchParams.get("travelers") ?? undefined,
     mode: url.searchParams.get("mode") ?? undefined,

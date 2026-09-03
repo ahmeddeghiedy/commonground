@@ -7,6 +7,7 @@ This directory contains the materials needed to complete the WebMCP Challenge su
 ## Files
 
 - `DEVPOST_SUBMISSION.md` — ready-to-paste title, descriptions, implementation explanation, and testing instructions.
+- `devpost-thumbnail-3x2.png` — 1536×1024 Devpost project thumbnail, optimized for the recommended 3:2 ratio and under the 5 MB limit.
 - `VIDEO_SCRIPT.md` — timed narration and matching screen direction.
 - `SHOT_LIST.md` — production checklist for every clip and the proof it gives judges.
 - `AGENT_CAPTURE_RUNBOOK.md` — exact prompt and acceptance gate for the genuine external Site Tools clip.

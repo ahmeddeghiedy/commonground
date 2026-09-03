@@ -7,7 +7,6 @@ This directory contains the materials needed to complete the WebMCP Challenge su
 ## Files
 
 - `DEVPOST_SUBMISSION.md` — ready-to-paste title, descriptions, implementation explanation, and testing instructions.
-- `DEVPOST_PROJECT_DETAILS.md` — paste-ready Project Story, technology tags, links, gallery order, captions, and video URL for the Devpost Project Details step.
 - `DEVPOST_ADDITIONAL_INFO.md` — technical testing instructions, repository details, agent/client coverage, and AI-tool disclosure for the Additional Info step; personal eligibility answers are intentionally excluded.
 - `devpost-thumbnail-3x2.png` — 1536×1024 Devpost project thumbnail combining the project message with a real production workspace screenshot, optimized for the recommended 3:2 ratio and under the 5 MB limit.
 - `devpost-thumbnail.html` — reproducible HTML/CSS source for the Devpost thumbnail.

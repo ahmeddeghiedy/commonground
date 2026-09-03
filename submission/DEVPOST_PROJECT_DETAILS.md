@@ -57,6 +57,14 @@ We also had to make subjective fairness explainable. A single “best hotel” s
 
 Browser support for an emerging technology was another practical challenge. We added capability detection, clear connection status, deterministic demo data, strict tool outputs, and a Chrome verification path so a judge can distinguish a product problem from a missing browser capability.
 
+## Accomplishments that we're proud of
+
+We are proud that CommonGround is a complete shared product experience rather than a chatbot wrapped around a static demo. A real external Codex agent can discover 27 typed Site Tools, identify four travelers by name, explain their specific conflicts, compare three decision strategies, choose a zero-violation hotel, and prepare a human-review draft in one request. The same actions immediately update the board the travelers are looking at.
+
+We are especially proud of the safety boundary. The agent is useful enough to complete the difficult research and negotiation work, but it cannot quietly cross into a purchase. The interface shows zero autonomous purchases, the draft explicitly says that no purchase is made, and the final approval remains a deliberate human action.
+
+We also built beyond the single demo path: organizers can create private workspaces for up to 30 travelers, invite people with scoped links, configure the trip, manage priorities and locks, and follow a guided onboarding flow. Automated tests and browser acceptance checks cover the tool contracts, permissions, fairness scoring, state synchronization, and booking-draft boundary. The result is something judges can use as a coherent product, not merely inspect as a technical prototype.
+
 ## What we learned
 
 Agents are most useful when they can operate on the same structured state as people—not when they merely describe what appears on a page. We also learned that visible actions are a product feature, not debugging decoration. People trust an agent more when they can see what it read, what it changed, why it made a recommendation, and where its authority ends.

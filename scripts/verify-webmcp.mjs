@@ -347,6 +347,8 @@ async function main() {
         }
         const bookingDialog = [...document.querySelectorAll('[role="dialog"]')]
           .find((dialog) => /approve booking draft/i.test(dialog.textContent || ""));
+        const invocationCount = Number(document.querySelector(".cg-command-metrics > div:nth-child(2) strong")?.textContent ?? "0");
+        const agentActivityCopy = document.querySelector(".cg-agent-activity")?.textContent ?? "";
 
         return {
           url: location.href,
@@ -379,6 +381,8 @@ async function main() {
           bookingDraft: bookingDraftCall?.result ?? null,
           bookingDraftVisible: Boolean(bookingDialog),
           bookingDraftCopy: bookingDialog?.textContent ?? "",
+          invocationCount,
+          agentActivityCopy,
         };
       })()
     `), "stable WebMCP execution context", 60_000);
@@ -408,6 +412,8 @@ async function main() {
       if (result.bookingDraft.changed?.draftOpenedFor !== "Pensão Lumen") throw new Error("booking draft opened for the wrong hotel");
       if (result.bookingDraft.changed?.scenarioId !== "compromise") throw new Error("booking draft retained the wrong scenario");
       if (!result.bookingDraftVisible || !/no purchase is made/i.test(result.bookingDraftCopy)) throw new Error("human approval/no-purchase boundary was not visible");
+      if (result.invocationCount < 1) throw new Error("visible agent invocation counter did not increase");
+      if (!/prepare booking draft.*completed/i.test(result.agentActivityCopy)) throw new Error(`last-tool telemetry was not visible: ${result.agentActivityCopy}`);
     }
 
     if (SCREENSHOT_PATH) {
@@ -430,6 +436,7 @@ async function main() {
       visibleStateVerified: true,
       workspaceIdentityVerified: true,
       bookingSafetyVerified: BOOKING_DRAFT_SCREENSHOT,
+      agentAttachmentTelemetryVerified: BOOKING_DRAFT_SCREENSHOT,
       readDurationsMs: result.readDurationsMs,
       executeToolArgumentMode: result.argumentMode,
       ...(SCREENSHOT_PATH ? { screenshotPath: SCREENSHOT_PATH } : {}),

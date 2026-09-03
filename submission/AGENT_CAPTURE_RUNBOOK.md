@@ -5,8 +5,10 @@ This is the one replacement clip the final video needs. It must show the recogni
 ## Before recording
 
 1. Open <https://commonground-travel.a-deghiedy.chatgpt.site/> in the Codex/ChatGPT built-in browser.
+   Do not open `chatgpt.com` and CommonGround in two ordinary Chrome tabs; that does not attach ChatGPT to the page’s WebMCP context.
 2. Confirm the green header badge reads **WebMCP · 27 tools** and inventory has finished loading.
 3. Open the Browser **Site Tools** control and approve CommonGround website access if prompted.
+   Before recording, invoke `get_workspace_state` once and confirm the dashboard’s **agent calls this session** counter increases.
 4. Keep the conversation on the left and the CommonGround browser on the right. Collapse unrelated panels and hide notifications.
 5. Begin on the populated demo workspace. Do not show sign-in, setup, invitation tokens, or loading states.
 

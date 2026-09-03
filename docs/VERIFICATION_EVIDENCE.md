@@ -19,6 +19,8 @@ Verified on September 3, 2026 against:
 - `explain_conflicts` returns traveler names and budgets with every locked constraint, avoiding ambiguous placeholder-only summaries.
 - `prepare_booking_draft` preserves an explicitly requested scenario in the generated draft and continues to assert `purchaseOccurred: false`.
 - The browser verifier also requires the human-confirmation dialog to be visible, name Pensão Lumen, retain the compromise scenario, and state that no purchase is made.
+- Version 11 adds visible attachment telemetry: the dashboard records each real Site Tool invocation and displays the last tool and outcome. Production verification observed 15 calls and `prepare_booking_draft · completed`.
+- Production collaboration acceptance verified workspace creation, custom capacity, invitation creation/listing, traveler-scoped access, revocation, and denial of the revoked credential.
 
 ## Registered tools
 

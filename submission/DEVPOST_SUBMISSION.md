@@ -6,7 +6,7 @@ CommonGround Travel
 
 ## One-line description
 
-A shared hotel decision board where an agent mediates conflicting traveler needs through 27 WebMCP tools—and people keep final booking approval.
+A shared hotel decision board where an agent mediates conflicting traveler needs through 27 WebMCP tools—and stops at a human-reviewed booking draft.
 
 ## Full description
 

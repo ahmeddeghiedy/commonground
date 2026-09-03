@@ -10,7 +10,7 @@ Verified on September 3, 2026 against:
 
 - `pnpm lint`: passed with zero errors.
 - TypeScript `--noEmit`: passed.
-- `pnpm test`: 21 tests passed in 2 files.
+- `pnpm test`: 22 tests passed in 3 files, including delayed WebMCP host attachment.
 - Production build: passed from an isolated staging path to avoid Dropbox file locking on Windows.
 - Collaboration API acceptance test: workspace creation, custom capacity, invitation creation/listing, traveler-scoped access, revocation, removal, and rejection of the revoked token all passed.
 - Public health check: status `ok`, 27 WebMCP tools, human approval required, autonomous purchase disabled, deterministic demo inventory active.
@@ -19,7 +19,9 @@ Verified on September 3, 2026 against:
 - `explain_conflicts` returns traveler names and budgets with every locked constraint, avoiding ambiguous placeholder-only summaries.
 - `prepare_booking_draft` preserves an explicitly requested scenario in the generated draft and continues to assert `purchaseOccurred: false`.
 - The browser verifier also requires the human-confirmation dialog to be visible, name Pensão Lumen, retain the compromise scenario, and state that no purchase is made.
-- Version 11 adds visible attachment telemetry: the dashboard records each real Site Tool invocation and displays the last tool and outcome. Production verification observed 15 calls and `prepare_booking_draft · completed`.
+- Version 12 retries a late `document.modelContext` injection for six seconds, preventing a supported first-time browser session from requiring a page reload when host attachment races React mount.
+- Three independent clean-profile Chrome runs each discovered all 27 tools, verified the workspace identity, executed the seven core reads, and synchronized reversible visible writes.
+- A full version 12 production run verified the booking safety dialog and attachment telemetry: 15 calls, zero autonomous purchases, and `prepare booking draft · completed`. Evidence: `submission/artifacts/webmcp-v12-production.png`.
 - Production collaboration acceptance verified workspace creation, custom capacity, invitation creation/listing, traveler-scoped access, revocation, and denial of the revoked credential.
 
 ## Registered tools

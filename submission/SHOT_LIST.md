@@ -2,13 +2,12 @@
 
 | Clip | Time | Screen action | Proof delivered |
 |---|---:|---|---|
-| 1 | 0:00–0:15 | Recognizable ChatGPT/Codex conversation beside the live board; Site Tools shows 27 tools and executes `get_workspace_state` | Working product and genuine external agent use in the first seconds |
-| 2 | 0:15–0:45 | Agent executes `search_hotel_inventory` and `explain_conflicts`; show structured travelers, constraints, inventory, and conflicts | Non-trivial WebMCP implementation; no DOM scraping |
-| 3 | 0:45–1:12 | Execute `select_scenario({scenarioId:"compromise"})` | Visible, reversible write; recalculation and auditability |
-| 4 | 1:12–1:33 | Execute `prepare_booking_draft` and reveal confirmation boundary | Useful multi-step outcome without autonomous purchase |
-| 5 | 1:33–2:03 | Briefly show `create_workspace`, the 30-seat capacity, onboarding, and a human-shared scoped invitation link | Coherent, permission-aware product experience beyond the technical demo |
-| 6 | 2:03–2:28 | Show WebMCP-on state, data-source control, and ranked options | Architecture, extensibility, and impact |
-| 7 | 2:28–2:35 | Compact end card with live URL | Memorable close and immediate testing path |
+| 1 | 0:00–0:22 | Authentic Codex conversation beside CommonGround in the built-in browser; real Site Tools inspect the group | Working product and genuine external-agent use immediately |
+| 2 | 0:22–0:58 | Named travelers, locked constraints, six-hotel context, conflict reasoning, and Balanced Compromise ranking | Structured WebMCP reasoning plus a visible state change |
+| 3 | 0:58–1:13 | Return to the authentic agent capture; show Pensão Lumen, `purchaseOccurred: false`, and the open draft dialog | Useful multi-step outcome with an explicit human boundary |
+| 4 | 1:13–1:36 | Show workspace creation, capacity up to 30, onboarding, priorities, and scoped invitation links | Complete permission-aware product experience |
+| 5 | 1:36–2:00 | Show connected WebMCP status, provider adapter, and ranked decision board | Architecture, extensibility, and impact |
+| 6 | 2:00–2:06 | Compact CommonGround close and live URL | Memorable close and immediate testing path |
 
 ## Capture rules
 

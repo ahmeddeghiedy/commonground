@@ -1,5 +1,7 @@
 # External agent capture runbook
 
+Status: accepted and incorporated into `artifacts/commonground-final-submission-master.mp4` on September 3, 2026.
+
 This is the one replacement clip the final video needs. It must show the recognizable ChatGPT/Codex conversation and CommonGround together; do not substitute the in-page test harness.
 
 ## Before recording

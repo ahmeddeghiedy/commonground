@@ -19,7 +19,7 @@
 
 ## Verification
 
-- [x] `pnpm test` — 21 tests passing.
+- [x] `pnpm test` — 23 tests passing.
 - [x] `pnpm lint` — zero errors.
 - [x] `pnpm build` — production build passing.
 - [x] `pnpm verify:webmcp` — 27 production tools registered; workspace/traveler identity, seven core reads, latency budget, and visible hotel/scenario writes verified on September 3, 2026.
@@ -29,9 +29,9 @@
 
 ## Demo and Devpost
 
-- [ ] Record a clean sub-three-minute video using `docs/DEMO_SCRIPT.md`.
+- [x] Record and assemble a clean approximately 2:06 video using the final submission script.
 - [ ] Add captions and zoom enough for the activity log and safety boundary to remain legible.
 - [x] Capture a production hero screenshot showing the connected 27-tool status.
-- [ ] Capture the recognizable ChatGPT/Codex Site Tools conversation beside CommonGround for the replacement video.
+- [x] Capture the recognizable ChatGPT/Codex Site Tools conversation beside CommonGround for the replacement video.
 - [ ] Complete the Devpost copy from `docs/SUBMISSION.md`.
 - [ ] Confirm all links are public in an incognito browser.

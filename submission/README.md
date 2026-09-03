@@ -12,12 +12,13 @@ This directory contains the materials needed to complete the WebMCP Challenge su
 - `SUBMISSION_CHECKLIST.md` — official requirements and final quality gates.
 - `artifacts/commonground-male-narration-v2.mp3` — final 2:06 warm male neural narration, updated for 27 tools.
 - `artifacts/commonground-male-narration-v2.vtt` — synchronized captions for the replacement narration.
+- `artifacts/commonground-final-submission-master.mp4` — final Adobe-rendered 1920×1080 submission master, approximately 2:06, combining the genuine Codex Site Tools capture with the product story and male narration.
 - `artifacts/commonground-male-narration.mp3` and `.vtt` — superseded 17-tool narration retained only for fallback history.
 - `artifacts/video-inspector.html` — local frame-inspection helper used by the quality-control script.
-- `artifacts/commonground-final-demo-agent.mp4` — previous Adobe-rendered 1080p cut, retained as a fallback while the external ChatGPT/Codex Site Tools replacement is produced (local only; excluded from Git).
+- `artifacts/commonground-final-demo-agent.mp4` — superseded Adobe-rendered cut retained locally as fallback history.
 - `artifacts/webmcp-production-27-tools.png` — production verification frame showing the deployed 27-tool status.
 
-The raw and final MP4 files stay out of Git because the public YouTube upload is the canonical delivery artifact.
+Raw capture intermediates stay out of Git. The compact final submission master is committed for team handoff; the public YouTube upload remains the canonical Devpost delivery artifact.
 
 ## Reproduce the screen capture
 
@@ -28,7 +29,7 @@ pnpm run capture:demo
 node scripts/inspect-demo-video.mjs
 ```
 
-The capture script launches an isolated Chrome application window with WebMCP enabled. It executes real tools through `document.modelContext.executeTool`, drives the visible scenario and setup interfaces, and records a silent 1600×900 source. Set `DEMO_AGENT_PROOF=1` to capture the transparent test harness as backup evidence. The primary replacement video must instead open with the recognizable ChatGPT/Codex conversation and Site Tools beside the deployed CommonGround interface. Adobe produces the final 1920×1080 cut with male narration and captions.
+The capture script launches an isolated Chrome application window with WebMCP enabled. It executes real tools through `document.modelContext.executeTool`, drives the visible scenario and setup interfaces, and records a silent 1600×900 source. The accepted final master instead opens with the recognizable Codex conversation and CommonGround built-in browser, then combines that genuine Site Tools footage with the strongest product views and the synchronized male narration.
 
 ## Final handoff
 

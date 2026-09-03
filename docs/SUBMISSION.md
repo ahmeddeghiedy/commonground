@@ -49,14 +49,13 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 - Pure scoring engine for traveler satisfaction, must-have violations, fairness, and scenario generation.
 - Automated real-Chrome verifier using `getTools()` and `executeTool()`.
 
-## Three-minute demo arc
+## Final 2:06 demo arc
 
-1. Show the sample traveler profiles, configurable group capacity, and locked must-haves.
-2. Ask the agent to read the workspace and explain conflicts.
-3. Search normalized hotel inventory.
-4. Let Sana relax the beach preference; show the board and audit log update.
-5. Ask which scenario is fairest and switch to Balanced Compromise.
-6. Ask to book the winner; show that WebMCP opens a human confirmation draft and makes no purchase.
+1. Open immediately on the real Codex agent and CommonGround built-in browser using Site Tools.
+2. Show named travelers, locked must-haves, six-hotel inventory context, and conflict reasoning.
+3. Show Balanced Compromise as a visible WebMCP state change.
+4. Return to the authentic agent capture for Pensão Lumen and the human-confirmation draft with no purchase.
+5. Close with the 30-traveler workspace flow, scoped invitations, provider adapter, and live URL.
 
 ## Judging criteria
 
@@ -71,5 +70,6 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 
 - Live demo: `https://commonground-travel.a-deghiedy.chatgpt.site`
 - Repository: `https://github.com/vteamtech/commonground`
-- Demo video: `TBD`
+- Final local master: `submission/artifacts/commonground-final-submission-master.mp4`
+- Public YouTube video: `TBD after upload`
 - TrailTrix Explore: <https://trailtrixexplore.com/>

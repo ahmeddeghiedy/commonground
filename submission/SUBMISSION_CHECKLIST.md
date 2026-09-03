@@ -5,11 +5,11 @@
 - [x] Working public live URL
 - [x] No login required for the demo
 - [x] WebMCP implementation works in enabled Chrome
-- [x] Twenty-seven registered tools verified in production after version 9 deployment
+- [x] Twenty-seven registered tools and booking safety verified in production after version 14 deployment
 - [x] Human-visible write action verified in production
 - [x] Open-source `LICENSE` file present and detected as MIT
 - [ ] GitHub repository visibility changed from private to public
-- [ ] Replacement final video rendered under three minutes with the recognizable ChatGPT/Codex Site Tools conversation
+- [x] Replacement final video rendered under three minutes with the recognizable ChatGPT/Codex Site Tools conversation
 - [ ] Final video watched end-to-end with sound
 - [ ] Final video uploaded publicly to YouTube
 - [ ] YouTube URL added to README and Devpost
@@ -34,13 +34,13 @@
 
 ## Final quality gate
 
-- [ ] Working product appears within the first 10 seconds
-- [ ] Agent visibly calls real WebMCP tools
-- [ ] One readable prompt, no live typing
-- [ ] A visible state change occurs
-- [ ] Human approval boundary is explicit
+- [x] Working product appears within the first 10 seconds
+- [x] Agent visibly calls real WebMCP tools
+- [x] One readable prompt, no live typing
+- [x] A visible state change occurs
+- [x] Human approval boundary is explicit
 - [ ] No loading, waiting, secrets, or invitation tokens are shown
 - [ ] Demo inventory is labeled honestly
 - [ ] Voice is clear on laptop speakers and headphones
 - [ ] Captions and on-screen tool labels are readable at 1080p
-- [ ] Video duration has at least a ten-second margin below three minutes
+- [x] Video duration has at least a ten-second margin below three minutes

@@ -2,6 +2,8 @@
 
 CommonGround is a multi-traveler hotel decision workspace where an AI agent and humans share one live board. Phase 3 adds **WebMCP**: the page exposes its capabilities as tools via `document.modelContext.registerTool` (W3C WebMCP draft) so an in-browser agent (e.g. ChatGPT in-app browser) can read and — with visible, auditable effects — change the shared state.
 
+**Final challenge video:** [`submission/artifacts/commonground-final-submission-master.mp4`](submission/artifacts/commonground-final-submission-master.mp4) — approximately 2:06, 1080p, with the genuine Codex/built-in-browser Site Tools interaction and male narration. The public YouTube link will replace this repository artifact in the Devpost form.
+
 **Live:** https://commonground-travel.a-deghiedy.chatgpt.site/
 
 **Challenge submission package:** [`submission/`](submission/) contains the exact Devpost copy, judge testing steps, timed demo script, capture plan, narration, and final deadline checklist.

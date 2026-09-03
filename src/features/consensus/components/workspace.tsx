@@ -596,6 +596,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
           <div className="cg-col-board">
             <ScenarioBoard
               scenarios={liveScenarios}
+              inventoryCount={state.hotels.length}
               travelers={state.travelers}
               selectedScenarioId={selectedScenarioId}
               onSelectScenario={(id) => {

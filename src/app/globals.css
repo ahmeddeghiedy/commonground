@@ -283,6 +283,7 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 
 /* Tabs */
 .cg-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.cg-inventory-context { display: inline-flex; margin: -4px 0 8px; padding: 5px 9px; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 999px; color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
 .cg-tab {
   background: none; border: 1px solid var(--border); color: var(--muted);
   padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;

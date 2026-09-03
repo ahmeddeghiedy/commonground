@@ -4,6 +4,7 @@ import type { Scenario, ScoredHotel, Traveler } from "../types";
 
 export interface ScenarioBoardProps {
   scenarios: Scenario[];
+  inventoryCount: number;
   travelers: Traveler[];
   selectedScenarioId: string;
   onSelectScenario: (id: string) => void;
@@ -111,6 +112,9 @@ export function ScenarioBoard(props: ScenarioBoardProps) {
       </div>
       <div id="scenario-panel" role="tabpanel" aria-labelledby={`tab-${scenario.id}`}>
         <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 0 }}>{scenario.description}</p>
+        <p className="cg-inventory-context" role="status">
+          Showing {scenario.hotels.length} ranked {scenario.hotels.length === 1 ? "option" : "options"} from {props.inventoryCount} hotels loaded.
+        </p>
         <div className="cg-meter-row">
           <span>Consensus meter</span>
           <span>{scenario.fairness}/100 fairness</span>

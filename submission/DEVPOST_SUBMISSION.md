@@ -6,27 +6,31 @@ CommonGround Travel
 
 ## One-line description
 
-An agent-assisted workspace that helps travel groups turn conflicting budgets and must-haves into one explainable, human-approved hotel decision.
+A shared hotel decision board where an agent mediates conflicting traveler needs through 27 WebMCP tools—and people keep final booking approval.
 
 ## Full description
 
-Planning a group trip usually means collecting preferences in a chat, losing important constraints between messages, and letting the loudest person choose. CommonGround gives each traveler a private decision profile and turns the group’s budgets, accessibility needs, location preferences, amenities, and vetoes into a transparent shortlist.
+Four people can agree on Lisbon and still disagree about every hotel. One needs step-free access. Another cannot exceed €130 per night. A family needs suitable rooms, while someone else values reviews and a gym. Those requirements normally disappear into a group chat and leave one organizer reconciling everything by hand. CommonGround gives each traveler a scoped decision profile and turns the group’s budgets, accessibility requirements, family needs, preferences, and vetoes into a transparent hotel ranking.
 
 ### Why this is a strong fit for WebMCP
 
-Group travel decisions are stateful, collaborative, and full of permission boundaries. An agent needs more than page text: it needs structured access to the current travelers, invitations, constraints, inventory, conflicts, scenarios, and booking state. CommonGround exposes those capabilities directly from the live web application as twenty-seven typed WebMCP tools. The website remains the shared source of truth for both people and agents.
+Group travel is a strong WebMCP use case because the answer depends on live shared state and explicit permissions—not just information visible in a page. The agent must know which traveler owns each requirement, which rules are locked, which hotels violate them, which scenario is active, and whether it may change anything. CommonGround exposes that decision model as 27 typed Site Tools. The agent and the travelers operate on the same workspace, while every agent action remains visible in the interface.
 
 ### How it creates a better experience
 
-Instead of asking an organizer to copy preferences into an AI chat or guide an agent through a fragile series of clicks, the agent can read the current workspace, search normalized hotel inventory, explain the real trade-offs, and compare scoring scenarios. With approval, it can make visible changes such as selecting a scenario or updating a traveler’s priority. Every change appears immediately in the interface and is added to the activity log.
+One request can make the agent inspect all four traveler profiles, search six normalized hotel results, explain three concrete budget conflicts, compare three scoring models, select Balanced Compromise, choose a zero-violation hotel, and open a booking draft. The organizer does not copy constraints into chat or guide the agent through six screens. Writes update the shared board immediately and appear in the activity log, so the group can see exactly what changed and why.
 
 ### What people and agents can now do together
 
-A group can ask, “Find the fairest option that protects accessibility and keeps us near our budgets.” The agent can inspect every member’s constraints, identify the budget-versus-location conflict, switch the visible ranking to Balanced Compromise, and prepare a booking draft in one guided interaction. Humans still control invitation links, ambiguous preference changes, vetoes, and the final purchase. This combination was difficult with a conventional travel site because the agent could not reliably understand shared group state or act through explicit, permission-aware controls.
+In the supplied Lisbon workspace, the agent reads Maya’s step-free requirement, Diego’s €130 limit, Sana’s family-room requirement, and Leo’s higher-budget preferences. It identifies budget gaps of €80, €100, and €140, then surfaces Pensão Lumen at €95 per night—€380 for four nights—with zero locked must-have violations. It can prepare that result as a human-confirmation draft, but it cannot book or charge. Conventional travel sites can return hotels; CommonGround lets people and an agent negotiate a fair, inspectable decision together without surrendering control.
 
 ### How WebMCP is implemented
 
-CommonGround feature-detects `document.modelContext` and registers twenty-seven tools with explicit names, descriptions, JSON input schemas, annotations, and execution handlers. Read tools expose onboarding status, collaboration status, workspace state, invitation status, traveler constraints, hotel inventory, scenario comparisons, and conflict explanations. Permission-aware write tools create a workspace, create or revoke scoped invitation links, configure capacity and trip settings, update an authorized traveler profile, manage priorities, generate scenarios, select a hotel, and prepare a booking draft. Tool handlers reuse the same application state and scoring functions as the human interface. Links are returned for a human to share, and there is no hidden purchase path.
+CommonGround feature-detects `document.modelContext` and registers 27 tools with strict JSON schemas, read/write annotations, cancellation support, and structured success or error results. Eight read tools expose workspace identity, collaboration and onboarding status, invitations, named traveler constraints, normalized inventory, scenario comparisons, and conflict explanations. Nineteen permission-aware actions cover workspace creation, scoped invitation links, capacity and trip settings, authorized profile changes, priorities, locks, vetoes, scenario and hotel selection, and booking-draft preparation. Tool handlers call the same React state transitions and scoring functions as the human controls. Supplier output is marked untrusted, invitation tokens are role-scoped and stored hashed, and no payment or reservation endpoint exists.
+
+### What judges can verify
+
+The public demo requires no login. A supported browser discovers all 27 tools. The supplied test prompt changes the visible board to Balanced Compromise, selects Pensão Lumen, and opens an **Approve booking draft** dialog for EUR 380. The dashboard records a nonzero agent-call count and `prepare booking draft · completed`, while the tool result explicitly reports `purchaseOccurred: false`. The repository includes automated Chrome verification and dated production evidence for this exact flow.
 
 ### Product and data architecture
 
@@ -37,6 +41,10 @@ The deployed challenge build uses clearly labeled curated demo inventory so judg
 ## Technologies
 
 WebMCP, React 19, Next.js-compatible routing through vinext, TypeScript, Cloudflare Workers and D1, Codex Sites, Vitest, and Zod.
+
+## AI-assisted development
+
+AI assistants helped scaffold, debug, test edge cases, tighten documentation, and produce the male narration. The recorded interaction is a real Codex agent using CommonGround’s registered Site Tools; it is not a recreated chat or simulated tool log. Product claims are limited to the deployed build, and the deterministic inventory is labeled as demo data rather than live supplier inventory.
 
 ## Testing instructions
 

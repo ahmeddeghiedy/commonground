@@ -2,7 +2,7 @@
 
 ## One-line pitch
 
-CommonGround turns group travel disagreement into an explainable, fair hotel decision that humans and an AI agent resolve together on one live board.
+CommonGround lets an agent mediate conflicting traveler requirements through 27 WebMCP tools while people retain the final hotel and booking decision.
 
 ## The problem
 
@@ -63,8 +63,8 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 |---|---|
 | WebMCP leverage | 27 purposeful tools, typed schemas, role enforcement, annotations, cancellation, visible shared state, and browser-native verification. |
 | Execution | Responsive working application, deterministic fallback, live-ready adapter, tests, production build, and documented demo. |
-| Impact | Reduces planning labor while protecting budget, accessibility, and family requirements for real travel groups. |
-| Creativity | Applies AI to consensus mediation and fairness rather than another itinerary generator or booking chatbot. |
+| Impact | One request reconciles four scoped profiles, six hotel results, three budget conflicts, and three scoring scenarios while protecting locked accessibility, budget, and family requirements. |
+| Creativity | Uses an agent as a transparent consensus mediator—not another individual itinerary generator or autonomous booking chatbot. |
 
 ## Submission links
 

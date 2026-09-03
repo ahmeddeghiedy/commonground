@@ -6,7 +6,7 @@
 - [x] Confirm `pnpm-lock.yaml`, `LICENSE`, `.env.example`, and documentation are committed.
 - [x] Confirm secrets, `.next`, and `node_modules` are not committed.
 - [x] Add repository URL to `docs/SUBMISSION.md`.
-- [ ] Make the repository public before submission.
+- [x] Make the repository public before submission.
 
 ## Deployment
 

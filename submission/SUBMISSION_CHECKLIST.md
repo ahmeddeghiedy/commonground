@@ -8,11 +8,11 @@
 - [x] Twenty-seven registered tools and booking safety verified in production after version 14 deployment
 - [x] Human-visible write action verified in production
 - [x] Open-source `LICENSE` file present and detected as MIT
-- [ ] GitHub repository visibility changed from private to public
+- [x] GitHub repository visibility changed from private to public
 - [x] Replacement final video rendered under three minutes with the recognizable ChatGPT/Codex Site Tools conversation
 - [ ] Final video watched end-to-end with sound
-- [ ] Final video uploaded publicly to YouTube
-- [ ] YouTube URL added to README and Devpost
+- [x] Final video uploaded publicly to YouTube
+- [x] YouTube URL added to README and Devpost
 - [ ] Devpost description pasted and checked after formatting
 - [ ] Repository URL, live URL, and testing instructions entered
 - [ ] Team members and contact details confirmed
@@ -30,7 +30,7 @@
 - [x] MIT license detected by GitHub
 - [x] GitHub About description added
 - [x] GitHub homepage set to the live application
-- [ ] Public-repository access verified while logged out
+- [x] Public-repository access verified while logged out
 
 ## Final quality gate
 

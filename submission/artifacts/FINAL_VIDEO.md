@@ -18,4 +18,6 @@ The agent footage shows the actual CommonGround Site Tools experience. It is not
 
 ## Publishing
 
-Upload this exact master to YouTube as **Public**, then replace the pending YouTube placeholders in `README.md`, `submission/DEVPOST_SUBMISSION.md`, and `docs/SUBMISSION.md` with the public watch URL.
+Public YouTube video: <https://youtu.be/pGRNtlabnbg>
+
+This exact master was uploaded for the challenge submission. Keep the YouTube video public and use that watch URL in Devpost.

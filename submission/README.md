@@ -2,6 +2,8 @@
 
 This directory contains the materials needed to complete the WebMCP Challenge submission without rewriting copy or improvising the demo on deadline day.
 
+**Public demo video:** <https://youtu.be/pGRNtlabnbg>
+
 ## Files
 
 - `DEVPOST_SUBMISSION.md` — ready-to-paste title, descriptions, implementation explanation, and testing instructions.
@@ -34,7 +36,7 @@ The capture script launches an isolated Chrome application window with WebMCP en
 ## Final handoff
 
 1. Watch the rendered MP4 end-to-end with sound.
-2. Upload it to YouTube as **Public**, not Unlisted or Private.
-3. Add the YouTube URL to `README.md`, `DEVPOST_SUBMISSION.md`, and Devpost.
-4. Make the GitHub repository public and verify it in a logged-out browser.
+2. Confirm the [YouTube video](https://youtu.be/pGRNtlabnbg) remains **Public** and plays while logged out.
+3. Paste the prepared Devpost copy and verify its links.
+4. Verify the public GitHub repository in a logged-out browser.
 5. Submit before Thursday, September 3, 2026 at 1:00 PM Pacific Time.

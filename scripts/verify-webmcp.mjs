@@ -9,6 +9,7 @@ import { join } from "node:path";
 
 const APP_URL = process.env.WEBMCP_TEST_URL ?? "http://localhost:3000";
 const SCREENSHOT_PATH = process.env.WEBMCP_SCREENSHOT_PATH;
+const BOOKING_DRAFT_SCREENSHOT = process.env.WEBMCP_BOOKING_DRAFT_SCREENSHOT === "1";
 const EXPECTED_TOOLS = [
   "get_collaboration_status",
   "get_workspace_state",
@@ -281,26 +282,40 @@ async function main() {
           try { return JSON.parse(value); } catch { return value; }
         };
         const callTool = async (tool, input) => {
+          const startedAt = performance.now();
           try {
             return {
               result: normalizeResult(await document.modelContext.executeTool(tool, input)),
               argumentMode: "object",
+              durationMs: Math.round(performance.now() - startedAt),
             };
           } catch (error) {
             if (!/parse input arguments/i.test(String(error?.message || error))) throw error;
             return {
               result: normalizeResult(await document.modelContext.executeTool(tool, JSON.stringify(input))),
               argumentMode: "json-string-compat",
+              durationMs: Math.round(performance.now() - startedAt),
             };
           }
         };
         const workspaceTool = byName("get_workspace_state");
+        const collaborationTool = byName("get_collaboration_status");
+        const travelersTool = byName("list_travelers_and_constraints");
+        const conflictsTool = byName("explain_conflicts");
+        const inventoryTool = byName("search_hotel_inventory");
+        const compareTool = byName("compare_scenarios");
         const onboardingTool = byName("get_onboarding_status");
         const scenarioTool = byName("select_scenario");
         const hotelTool = byName("select_hotel");
-        if (!workspaceTool || !onboardingTool || !scenarioTool || !hotelTool) throw new Error("required smoke-test tools were not registered");
+        const prepareTool = byName("prepare_booking_draft");
+        if (!workspaceTool || !collaborationTool || !travelersTool || !conflictsTool || !inventoryTool || !compareTool || !onboardingTool || !scenarioTool || !hotelTool || !prepareTool) throw new Error("required smoke-test tools were not registered");
 
         const workspaceCall = await callTool(workspaceTool, {});
+        const collaborationCall = await callTool(collaborationTool, {});
+        const travelersCall = await callTool(travelersTool, {});
+        const conflictsCall = await callTool(conflictsTool, {});
+        const inventoryCall = await callTool(inventoryTool, {});
+        const compareCall = await callTool(compareTool, {});
         const onboardingCall = await callTool(onboardingTool, {});
         const originalHotelId = workspaceCall.result?.selectedHotelId ?? "none";
         const visibleHotelCard = [...document.querySelectorAll("article[aria-label]")]
@@ -322,12 +337,34 @@ async function main() {
         await wait(100);
         const consensusVisible = [...document.querySelectorAll("button")]
           .some((button) => /group consensus/i.test(button.textContent || "") && button.getAttribute("aria-selected") === "true");
+        let bookingDraftCall = null;
+        if (${BOOKING_DRAFT_SCREENSHOT}) {
+          const balancedHotelId = workspaceCall.result?.hotels?.find((hotel) => hotel.name === "Pensão Lumen")?.id ?? candidateHotelId;
+          await callTool(scenarioTool, { scenarioId: "compromise" });
+          await callTool(hotelTool, { hotelId: balancedHotelId });
+          bookingDraftCall = await callTool(prepareTool, { hotelId: balancedHotelId, scenarioId: "compromise" });
+          await wait(500);
+        }
 
         return {
           url: location.href,
           toolNames: tools.map((tool) => tool.name),
           workspace: workspaceCall.result,
+          collaboration: collaborationCall.result,
+          travelers: travelersCall.result,
+          conflicts: conflictsCall.result,
+          inventory: inventoryCall.result,
+          comparison: compareCall.result,
           onboarding: onboardingCall.result,
+          readDurationsMs: {
+            get_workspace_state: workspaceCall.durationMs,
+            get_collaboration_status: collaborationCall.durationMs,
+            list_travelers_and_constraints: travelersCall.durationMs,
+            explain_conflicts: conflictsCall.durationMs,
+            search_hotel_inventory: inventoryCall.durationMs,
+            compare_scenarios: compareCall.durationMs,
+            get_onboarding_status: onboardingCall.durationMs,
+          },
           selectedHotel: selectedHotelCall.result,
           selectedHotelState: selectedHotelStateCall.result,
           restoredHotel: restoredHotelCall.result,
@@ -337,6 +374,7 @@ async function main() {
           argumentMode: changedCall.argumentMode,
           compromiseVisible,
           consensusVisible,
+          bookingDraft: bookingDraftCall?.result ?? null,
         };
       })()
     `), "stable WebMCP execution context", 60_000);
@@ -349,11 +387,18 @@ async function main() {
       throw new Error(`Tool mismatch: ${JSON.stringify({ missing, extra, actual })}`);
     }
     if (!result.workspace?.success) throw new Error("get_workspace_state did not return success");
+    if (result.workspace.workspace?.name !== "Demo workspace") throw new Error(`unexpected workspace identity: ${JSON.stringify(result.workspace.workspace)}`);
+    if (result.workspace.destination !== "Lisbon, Portugal") throw new Error(`unexpected demo destination: ${result.workspace.destination}`);
+    if (result.workspace.travelers?.map((traveler) => traveler.name).join(",") !== "Maya,Diego,Sana,Leo") throw new Error("demo traveler identity mismatch");
+    if (!result.collaboration?.success || !result.travelers?.success || !result.conflicts?.success || !result.inventory?.success || !result.comparison?.success) throw new Error("one or more core read tools failed");
+    const slowReads = Object.entries(result.readDurationsMs).filter(([, duration]) => duration > 5000);
+    if (slowReads.length) throw new Error(`core read tools exceeded 5 seconds: ${JSON.stringify(slowReads)}`);
     if (!result.onboarding?.success) throw new Error("get_onboarding_status did not return success");
     if (!result.selectedHotel?.success || result.selectedHotelState?.selectedHotelId !== result.selectedHotel.changed?.selectedHotelId || !result.selectedHotelVisible) throw new Error(`hotel selection was not visible in both state and UI: ${JSON.stringify({ selectedHotel: result.selectedHotel, stateId: result.selectedHotelState?.selectedHotelId, ui: result.selectedHotelVisible })}`);
     if (!result.restoredHotel?.success) throw new Error("hotel selection was not restored");
     if (!result.changed?.success || !result.compromiseVisible) throw new Error("compromise selection was not visible");
     if (!result.restored?.success || !result.consensusVisible) throw new Error("consensus restoration was not visible");
+    if (BOOKING_DRAFT_SCREENSHOT && !result.bookingDraft?.success) throw new Error("booking draft was not opened for the screenshot");
 
     if (SCREENSHOT_PATH) {
       const screenshot = await client.send("Page.captureScreenshot", {
@@ -373,6 +418,8 @@ async function main() {
       onboardingRead: "get_onboarding_status",
       reversibleWrites: ["select_hotel: candidate -> original", "select_scenario: compromise -> consensus"],
       visibleStateVerified: true,
+      workspaceIdentityVerified: true,
+      readDurationsMs: result.readDurationsMs,
       executeToolArgumentMode: result.argumentMode,
       ...(SCREENSHOT_PATH ? { screenshotPath: SCREENSHOT_PATH } : {}),
     }, null, 2)}\n`);

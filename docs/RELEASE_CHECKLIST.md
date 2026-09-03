@@ -22,7 +22,7 @@
 - [x] `pnpm test` — 21 tests passing.
 - [x] `pnpm lint` — zero errors.
 - [x] `pnpm build` — production build passing.
-- [x] `pnpm verify:webmcp` — 27 production tools registered; onboarding/state reads and visible hotel/scenario writes verified on September 2, 2026.
+- [x] `pnpm verify:webmcp` — 27 production tools registered; workspace/traveler identity, seven core reads, latency budget, and visible hotel/scenario writes verified on September 3, 2026.
 - [ ] Run every prompt in `WEBMCP_EVALS.md` with the final agent/browser.
 - [ ] Verify desktop and mobile layouts on the deployed URL.
 - [ ] Verify the fallback demo with supplier credentials removed.

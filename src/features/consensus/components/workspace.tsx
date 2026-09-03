@@ -159,7 +159,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     collaborationStatus === "demo" || role === "owner" || (role === "traveler" && travelerId === currentTravelerId)
   ), [collaborationStatus, currentTravelerId, role]);
 
-  const openBookingDraft = useCallback((hotelId?: string) => {
+  const openBookingDraft = useCallback((hotelId?: string, scenarioId?: Scenario["id"]) => {
     const resolvedHotelId = hotelId ?? selectedHotelId;
     if (!resolvedHotelId) return;
     const hotel = state.hotels.find((h) => h.id === resolvedHotelId);
@@ -167,7 +167,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
     setDraft({
       id: `draft-${Date.now()}`,
       hotelId: hotel.id,
-      scenarioId: selectedScenarioId,
+      scenarioId: scenarioId ?? selectedScenarioId,
       travelerIds: state.travelers.map((t) => t.id),
       nights: state.nights,
       totalPrice: hotel.totalPrice,

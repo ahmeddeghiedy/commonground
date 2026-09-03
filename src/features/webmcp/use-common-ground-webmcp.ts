@@ -28,7 +28,7 @@ export interface CommonGroundWebMCPProps {
   setSelectedHotelId: Setter<string | null>;
   vetoedHotelIds: string[];
   setVetoedHotelIds: Setter<string[]>;
-  openBookingDraft: (hotelId?: string) => void;
+  openBookingDraft: (hotelId?: string, scenarioId?: Scenario["id"]) => void;
   collaboration: {
     mode: "demo" | "workspace";
     workspaceId?: string;
@@ -197,7 +197,15 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       annotations: { readOnlyHint: true },
       execute: async () => {
         const s = P.current.state;
+        const c = P.current.collaboration;
         return ok({
+          workspace: {
+            id: c.workspaceId ?? null,
+            name: c.workspaceName,
+            mode: c.mode,
+            role: c.role ?? "demo-user",
+          },
+          snapshotAt: new Date().toISOString(),
           destination: s.destination,
           checkIn: s.checkIn,
           nights: s.nights,
@@ -333,7 +341,15 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
             travelerNames: c.travelerIds.map(name),
           })),
           lockedConstraints: s.travelers.flatMap((t) =>
-            t.constraints.filter((c) => c.locked).map((c) => ({ travelerId: t.id, constraintId: c.id, label: c.label }))
+            t.constraints.filter((c) => c.locked).map((c) => ({
+              travelerId: t.id,
+              travelerName: t.name,
+              budgetPerNight: t.budgetPerNight,
+              constraintId: c.id,
+              label: c.label,
+              category: c.category,
+              priority: c.priority,
+            }))
           ),
           nextAction: "Propose set_constraint_priority or lock_constraint changes the humans can approve.",
         });
@@ -768,9 +784,13 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
           ...s,
           activity: logActivity(s.activity, "approve", `Agent prepared a booking draft for ${hotel.name} — awaiting human confirmation; no purchase occurred`),
         }));
-        P.current.openBookingDraft(hotelId);
+        P.current.openBookingDraft(hotelId, scenarioId ?? P.current.selectedScenarioId);
         return ok({
-          changed: { draftOpenedFor: hotel.name, hotelId },
+          changed: {
+            draftOpenedFor: hotel.name,
+            hotelId,
+            scenarioId: scenarioId ?? P.current.selectedScenarioId,
+          },
           purchaseOccurred: false,
           nextAction: "Tell the humans to review and approve/reject the draft in the drawer. No purchase occurred.",
         });

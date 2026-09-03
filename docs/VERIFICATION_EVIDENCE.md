@@ -1,10 +1,10 @@
 # Production verification evidence
 
-Verified on September 2, 2026 against:
+Verified on September 3, 2026 against:
 
 - Live application: <https://commonground-travel.a-deghiedy.chatgpt.site/>
-- Source checkpoint: `924522303665e0846a8e16555c0d3d3caac984ee`
-- Sites release: version 9
+- Source checkpoint: the current `main` commit associated with the deployed Sites version
+- Sites release: the current production version at the URL above
 
 ## Automated results
 
@@ -14,7 +14,10 @@ Verified on September 2, 2026 against:
 - Production build: passed from an isolated staging path to avoid Dropbox file locking on Windows.
 - Collaboration API acceptance test: workspace creation, custom capacity, invitation creation/listing, traveler-scoped access, revocation, removal, and rejection of the revoked token all passed.
 - Public health check: status `ok`, 27 WebMCP tools, human approval required, autonomous purchase disabled, deterministic demo inventory active.
-- Public Chrome WebMCP verification: all 27 expected tools discovered; `get_workspace_state` and `get_onboarding_status` executed; hotel and scenario selections changed both structured state and the visible UI, then were restored.
+- Public Chrome WebMCP verification: all 27 expected tools discovered; the seven core read/reason tools executed within the latency budget; exact demo workspace, destination, and traveler identities were asserted; hotel and scenario selections changed both structured state and the visible UI, then were restored.
+- `get_workspace_state` returns explicit workspace identity and snapshot time so agents can reject stale or incorrectly attached browser sessions before acting.
+- `explain_conflicts` returns traveler names and budgets with every locked constraint, avoiding ambiguous placeholder-only summaries.
+- `prepare_booking_draft` preserves an explicitly requested scenario in the generated draft and continues to assert `purchaseOccurred: false`.
 
 ## Registered tools
 

@@ -7,6 +7,8 @@ const eslintConfig = [
   {
     ignores: [
       ".next/**",
+      ".openai/**",
+      ".capture-profile*/**",
       "dist/**",
       "node_modules/**",
       "out/**",

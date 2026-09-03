@@ -22,6 +22,9 @@ WebMCP is intentionally a progressive enhancement. An unsupported browser never 
 5. Approve the website-access prompt when the agent requests it.
 6. Confirm the address-bar arrow is present. It turns blue while tools are being used.
 7. Confirm the CommonGround header says **WebMCP · 27 tools**.
+8. Invoke a Site Tool and confirm the dashboard’s **agent calls this session** counter increases. This is proof of agent attachment; the registration badge alone is not.
+
+Opening `chatgpt.com` and CommonGround in two ordinary Chrome tabs does not attach ChatGPT to the page’s WebMCP context. Site Tools are currently available to ChatGPT only through the desktop app’s built-in browser.
 
 Official instructions: <https://help.openai.com/en/articles/20001423-using-site-tools-in-the-chatgpt-desktop-app>
 

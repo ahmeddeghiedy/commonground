@@ -531,13 +531,18 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
             <div className="cg-command-head">
               <div><Bot size={18} /><span>Agent control surface</span></div>
               <span className={`cg-status-pill ${webmcp.supported ? "is-ready" : "is-off"}`}>
-                {webmcp.supported ? "Native & connected" : "27 tools ready"}
+                {webmcp.invocationCount > 0 ? "Agent active" : webmcp.supported ? "Tools registered" : "Connection needed"}
               </span>
             </div>
             <div className="cg-command-metrics">
               <div><strong>{webmcp.supported ? webmcp.registeredCount : 27}</strong><span>strict tools</span></div>
-              <div><strong>100%</strong><span>visible writes</span></div>
+              <div><strong>{webmcp.invocationCount}</strong><span>agent calls this session</span></div>
               <div><strong>0</strong><span>autonomous purchases</span></div>
+            </div>
+            <div className={`cg-agent-activity ${webmcp.invocationCount > 0 ? "is-active" : ""}`}>
+              {webmcp.lastInvocation
+                ? <><strong>Last Site Tool:</strong> {webmcp.lastInvocation.name.replaceAll("_", " ")} · {webmcp.lastInvocation.status}</>
+                : <><strong>Awaiting an attached agent.</strong> Use ChatGPT desktop&apos;s built-in browser; chatgpt.com in regular Chrome cannot access another tab&apos;s tools.</>}
             </div>
             <div className="cg-safety-line"><ShieldCheck size={15} /> Human approval is the final gate</div>
             <div className="cg-tool-flow">
@@ -652,7 +657,7 @@ export function Workspace({ workspaceId }: { workspaceId?: string }) {
       {showWorkspaceSettings && workspaceId && role === "owner" && (
         <WorkspaceSettingsDialog travelerLimit={travelerLimit} currentCount={state.travelers.length} onClose={() => setShowWorkspaceSettings(false)} onSave={setTravelerLimit} />
       )}
-      {showWebMCPReadiness && <WebMCPReadinessDialog supported={webmcp.supported} toolCount={webmcp.registeredCount || 27} onClose={() => setShowWebMCPReadiness(false)} />}
+      {showWebMCPReadiness && <WebMCPReadinessDialog supported={webmcp.supported} toolCount={webmcp.registeredCount || 27} invocationCount={webmcp.invocationCount} lastInvocation={webmcp.lastInvocation} onClose={() => setShowWebMCPReadiness(false)} />}
       {showInventorySource && <InventorySourceDialog info={inventoryInfo} onClose={() => setShowInventorySource(false)} onRefresh={() => { setStatus("loading"); setInventoryRefresh((value) => value + 1); }} />}
       {showOnboarding && workspaceId && role === "owner" && currentTravelerId && (
         <WorkspaceOnboardingWizard

@@ -53,6 +53,12 @@ export interface CommonGroundWebMCPProps {
 export interface CommonGroundWebMCPStatus {
   supported: boolean;
   registeredCount: number;
+  invocationCount: number;
+  lastInvocation: {
+    name: string;
+    status: "running" | "completed" | "rejected" | "failed";
+    at: string;
+  } | null;
 }
 
 const PRIORITIES: Priority[] = ["must", "prefer", "flexible", "exclude"];
@@ -90,7 +96,12 @@ interface LocalToolOptions {
  * Handlers always read current state/actions through refs; registration runs once.
  */
 export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGroundWebMCPStatus {
-  const [status, setStatus] = useState<CommonGroundWebMCPStatus>({ supported: false, registeredCount: 0 });
+  const [status, setStatus] = useState<CommonGroundWebMCPStatus>({
+    supported: false,
+    registeredCount: 0,
+    invocationCount: 0,
+    lastInvocation: null,
+  });
   const propsRef = useRef(props);
   propsRef.current = props;
   const activitySeq = useRef(0);
@@ -102,7 +113,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
         : undefined;
     if (!mc || typeof mc.registerTool !== "function") {
 // Legacy navigator alias would go here; intentionally NOT used (deprecated).
-      setStatus({ supported: false, registeredCount: 0 });
+      setStatus({ supported: false, registeredCount: 0, invocationCount: 0, lastInvocation: null });
       return;
     }
 
@@ -144,11 +155,35 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
               untrustedContentHint:
                 options.annotations?.untrustedContentHint ?? false,
             },
-            execute: (args, executionOptions) =>
-              options.execute(
-                args,
-                executionOptions?.signal ?? new AbortController().signal
-              ),
+            execute: async (args, executionOptions) => {
+              const at = new Date().toISOString();
+              setStatus((current) => ({
+                ...current,
+                invocationCount: current.invocationCount + 1,
+                lastInvocation: { name, status: "running", at },
+              }));
+              try {
+                const result = await options.execute(
+                  args,
+                  executionOptions?.signal ?? new AbortController().signal
+                );
+                const rejected = Boolean(
+                  result && typeof result === "object" &&
+                  "success" in result && (result as { success?: unknown }).success === false
+                );
+                setStatus((current) => ({
+                  ...current,
+                  lastInvocation: { name, status: rejected ? "rejected" : "completed", at },
+                }));
+                return result;
+              } catch (error) {
+                setStatus((current) => ({
+                  ...current,
+                  lastInvocation: { name, status: "failed", at },
+                }));
+                throw error;
+              }
+            },
           },
           { signal: controller.signal }
         ).catch(() => {
@@ -797,7 +832,7 @@ export function useCommonGroundWebMCP(props: CommonGroundWebMCPProps): CommonGro
       },
     });
 
-    setStatus({ supported: true, registeredCount: count });
+    setStatus((current) => ({ ...current, supported: true, registeredCount: count }));
 
     return () => {
       controller.abort();

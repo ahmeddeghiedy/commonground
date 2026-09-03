@@ -79,6 +79,8 @@ Optional live inventory: choose `wadjet` or `custom` through the provider adapte
 
 **ChatGPT desktop built-in browser**: enable **Site Tools** under Browser settings → Permissions, open the deployed app with an eligible account/model, and approve the website-access prompt. The address-bar arrow shows availability.
 
+The `chatgpt.com` webpage in a regular Chrome tab cannot access WebMCP tools registered by a different tab. For a genuine ChatGPT agent run, CommonGround must be open inside the ChatGPT desktop app’s built-in browser. The dashboard distinguishes tool registration from actual agent attachment with a session call counter and last-tool status.
+
 **Chrome testing**: `chrome://flags/#enable-webmcp-testing` → Enabled → relaunch. The header shows `WebMCP · N tools` when connected. If it says `WebMCP ready · connect browser`, click it for the diagnostic; the website is ready but that browser session has not exposed `document.modelContext`.
 
 **Comet and Firefox**: the complete CommonGround application works, but neither browser currently documents native `document.modelContext` support. The in-product connection center explains the supported setup paths without presenting missing browser capability as an app error. See [browser support and WebMCP enablement](docs/BROWSER_SUPPORT.md) for the maintained compatibility matrix and exact instructions.

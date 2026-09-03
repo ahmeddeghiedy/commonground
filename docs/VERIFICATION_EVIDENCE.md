@@ -18,6 +18,7 @@ Verified on September 3, 2026 against:
 - `get_workspace_state` returns explicit workspace identity and snapshot time so agents can reject stale or incorrectly attached browser sessions before acting.
 - `explain_conflicts` returns traveler names and budgets with every locked constraint, avoiding ambiguous placeholder-only summaries.
 - `prepare_booking_draft` preserves an explicitly requested scenario in the generated draft and continues to assert `purchaseOccurred: false`.
+- The browser verifier also requires the human-confirmation dialog to be visible, name Pensão Lumen, retain the compromise scenario, and state that no purchase is made.
 
 ## Registered tools
 

@@ -345,6 +345,8 @@ async function main() {
           bookingDraftCall = await callTool(prepareTool, { hotelId: balancedHotelId, scenarioId: "compromise" });
           await wait(500);
         }
+        const bookingDialog = [...document.querySelectorAll('[role="dialog"]')]
+          .find((dialog) => /approve booking draft/i.test(dialog.textContent || ""));
 
         return {
           url: location.href,
@@ -375,6 +377,8 @@ async function main() {
           compromiseVisible,
           consensusVisible,
           bookingDraft: bookingDraftCall?.result ?? null,
+          bookingDraftVisible: Boolean(bookingDialog),
+          bookingDraftCopy: bookingDialog?.textContent ?? "",
         };
       })()
     `), "stable WebMCP execution context", 60_000);
@@ -398,7 +402,13 @@ async function main() {
     if (!result.restoredHotel?.success) throw new Error("hotel selection was not restored");
     if (!result.changed?.success || !result.compromiseVisible) throw new Error("compromise selection was not visible");
     if (!result.restored?.success || !result.consensusVisible) throw new Error("consensus restoration was not visible");
-    if (BOOKING_DRAFT_SCREENSHOT && !result.bookingDraft?.success) throw new Error("booking draft was not opened for the screenshot");
+    if (BOOKING_DRAFT_SCREENSHOT) {
+      if (!result.bookingDraft?.success) throw new Error("booking draft tool did not succeed");
+      if (result.bookingDraft.purchaseOccurred !== false) throw new Error("booking draft did not explicitly assert that no purchase occurred");
+      if (result.bookingDraft.changed?.draftOpenedFor !== "Pensão Lumen") throw new Error("booking draft opened for the wrong hotel");
+      if (result.bookingDraft.changed?.scenarioId !== "compromise") throw new Error("booking draft retained the wrong scenario");
+      if (!result.bookingDraftVisible || !/no purchase is made/i.test(result.bookingDraftCopy)) throw new Error("human approval/no-purchase boundary was not visible");
+    }
 
     if (SCREENSHOT_PATH) {
       const screenshot = await client.send("Page.captureScreenshot", {
@@ -419,6 +429,7 @@ async function main() {
       reversibleWrites: ["select_hotel: candidate -> original", "select_scenario: compromise -> consensus"],
       visibleStateVerified: true,
       workspaceIdentityVerified: true,
+      bookingSafetyVerified: BOOKING_DRAFT_SCREENSHOT,
       readDurationsMs: result.readDurationsMs,
       executeToolArgumentMode: result.argumentMode,
       ...(SCREENSHOT_PATH ? { screenshotPath: SCREENSHOT_PATH } : {}),

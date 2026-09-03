@@ -3,14 +3,14 @@
 Verified on September 3, 2026 against:
 
 - Live application: <https://commonground-travel.a-deghiedy.chatgpt.site/>
-- Source checkpoint: the current `main` commit associated with the deployed Sites version
-- Sites release: the current production version at the URL above
+- Source checkpoint: `fde5e1395800dc7c15799ea2e1aa49de2e676a27`
+- Sites release: version 14 at the URL above
 
 ## Automated results
 
 - `pnpm lint`: passed with zero errors.
 - TypeScript `--noEmit`: passed.
-- `pnpm test`: 22 tests passed in 3 files, including delayed WebMCP host attachment.
+- `pnpm test`: 23 tests passed in 4 files, including delayed WebMCP host attachment and parameterless inventory-context alignment.
 - Production build: passed from an isolated staging path to avoid Dropbox file locking on Windows.
 - Collaboration API acceptance test: workspace creation, custom capacity, invitation creation/listing, traveler-scoped access, revocation, removal, and rejection of the revoked token all passed.
 - Public health check: status `ok`, 27 WebMCP tools, human approval required, autonomous purchase disabled, deterministic demo inventory active.
@@ -22,6 +22,9 @@ Verified on September 3, 2026 against:
 - Version 12 retries a late `document.modelContext` injection for six seconds, preventing a supported first-time browser session from requiring a page reload when host attachment races React mount.
 - Three independent clean-profile Chrome runs each discovered all 27 tools, verified the workspace identity, executed the seven core reads, and synchronized reversible visible writes.
 - A full version 12 production run verified the booking safety dialog and attachment telemetry: 15 calls, zero autonomous purchases, and `prepare booking draft · completed`. Evidence: `submission/artifacts/webmcp-v12-production.png`.
+- Version 14 aligns parameterless `/api/inventory` responses with the demo workspace: Lisbon, October 15, 2026, four nights, four travelers, and all six hotels. The inventory Site Tool also returns that explicit search context and `matchesWorkspace: true`.
+- The scenario board now distinguishes its filtered ranking from the source inventory with an explicit `Showing X ranked options from 6 hotels loaded` status, preventing a one-card consensus shortlist from being mistaken for incomplete inventory.
+- A fresh version 14 production run discovered all 27 tools, executed the seven core reads, synchronized reversible visible writes, opened the Pensão Lumen compromise draft, verified `purchaseOccurred: false`, and showed 15 agent calls with zero autonomous purchases. Evidence: `submission/artifacts/webmcp-production-v14.png`.
 - Production collaboration acceptance verified workspace creation, custom capacity, invitation creation/listing, traveler-scoped access, revocation, and denial of the revoked credential.
 
 ## Registered tools

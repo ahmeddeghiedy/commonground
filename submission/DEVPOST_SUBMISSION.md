@@ -54,6 +54,6 @@ Do not test by opening `chatgpt.com` and CommonGround in two ordinary Chrome tab
 ## Links
 
 - Live application: https://commonground-travel.a-deghiedy.chatgpt.site/
-- Source repository: https://github.com/vteamtech/commonground
+- Source repository: https://github.com/ahmeddeghiedy/commonground
 - Final local master: `submission/artifacts/commonground-final-submission-master.mp4`
 - Public YouTube video: TO BE ADDED AFTER UPLOAD

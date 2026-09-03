@@ -69,7 +69,7 @@ Most travel agents answer “What should I book?” CommonGround answers a harde
 ## Submission links
 
 - Live demo: `https://commonground-travel.a-deghiedy.chatgpt.site`
-- Repository: `https://github.com/vteamtech/commonground`
+- Repository: `https://github.com/ahmeddeghiedy/commonground`
 - Final local master: `submission/artifacts/commonground-final-submission-master.mp4`
 - Public YouTube video: `TBD after upload`
 - TrailTrix Explore: <https://trailtrixexplore.com/>
